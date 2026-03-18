@@ -20,6 +20,7 @@ struct NotchPopupView: View {
     @State private var dragOffset: CGFloat = 0
     @State private var volume: Double = 0.5
     @State private var isDarkMode = false
+    @State private var brightness: Double = 0.5
     @State private var contentVisible = false
 
     private let pageCount = 4
@@ -384,25 +385,21 @@ struct NotchPopupView: View {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     private var controlPage: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             // 볼륨
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Image(systemName: "speaker.wave.2.fill").font(.system(size: 10)).foregroundColor(.white.opacity(0.4))
-                    Text("볼륨").font(.system(size: 10, weight: .medium)).foregroundColor(.white.opacity(0.4))
-                    Spacer()
-                    Text("\(Int(volume * 100))%").font(.system(size: 10, design: .rounded)).foregroundColor(.white.opacity(0.3))
-                }
-                wideSlider(value: $volume) { setVolume($0) }
-            }
-            .padding(10)
-            .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.04)))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.05), lineWidth: 0.5))
+            sliderRow(icon: "speaker.wave.2.fill", label: "볼륨",
+                      value: $volume, pctText: "\(Int(volume * 100))%") { setVolume($0) }
+
+            // 밝기
+            sliderRow(icon: "sun.max.fill", label: "밝기",
+                      value: $brightness, pctText: "\(Int(brightness * 100))%") { setBrightness($0) }
 
             // 토글 버튼
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ctrlToggle(icon: isDarkMode ? "moon.fill" : "sun.max.fill", label: "다크 모드", active: isDarkMode) { toggleDarkMode() }
                 ctrlToggle(icon: "camera.fill", label: "스크린샷", active: false) { takeScreenshot() }
+                ctrlToggle(icon: "wifi", label: "Wi-Fi", active: false) { openWiFiSettings() }
+                ctrlToggle(icon: "bluetooth", label: "블루투스", active: false) { openBluetoothSettings() }
                 ctrlToggle(icon: "gearshape.fill", label: "설정", active: false) { openSettings() }
             }
 
@@ -450,19 +447,34 @@ struct NotchPopupView: View {
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.05), lineWidth: 0.5))
     }
 
+    private func sliderRow(icon: String, label: String, value: Binding<Double>, pctText: String, onChange: @escaping (Double) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: icon).font(.system(size: 10)).foregroundColor(.white.opacity(0.4))
+                Text(label).font(.system(size: 10, weight: .medium)).foregroundColor(.white.opacity(0.4))
+                Spacer()
+                Text(pctText).font(.system(size: 10, design: .rounded)).foregroundColor(.white.opacity(0.3))
+            }
+            wideSlider(value: value, onChange: onChange)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 10).fill(.white.opacity(0.04)))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.05), lineWidth: 0.5))
+    }
+
     private func ctrlToggle(icon: String, label: String, active: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: 16))
+                    .font(.system(size: 14))
                     .foregroundColor(active ? .white : .white.opacity(0.4))
-                    .frame(width: 44, height: 44)
+                    .frame(width: 36, height: 36)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 10)
                             .fill(active ? Color.accentColor : .white.opacity(0.05))
                     )
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(.white.opacity(0.04), lineWidth: 0.5))
-                Text(label).font(.system(size: 8)).foregroundColor(.white.opacity(0.3))
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(.white.opacity(0.04), lineWidth: 0.5))
+                Text(label).font(.system(size: 7)).foregroundColor(.white.opacity(0.3))
             }
         }
         .buttonStyle(.plain)
@@ -507,6 +519,7 @@ struct NotchPopupView: View {
         if let r = AppleScriptRunner.run("output volume of (get volume settings)"), let v = Int(r) {
             volume = Double(v) / 100
         }
+        // 밝기는 시스템에서 직접 가져오기 어려우므로 0.5 기본값 유지
     }
 
     private func setVolume(_ v: Double) {
@@ -520,11 +533,42 @@ struct NotchPopupView: View {
     }
 
     private func takeScreenshot() {
-        AppleScriptRunner.run("tell application \"System Events\" to keystroke \"4\" using {command down, shift down}")
+        // 패널을 잠시 숨기고 스크린샷 실행
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            let task = Process()
+            task.launchPath = "/usr/sbin/screencapture"
+            task.arguments = ["-i", "-s"]
+            try? task.run()
+        }
+    }
+
+    private func setBrightness(_ v: Double) {
+        let clamped = min(max(v, 0), 1)
+        AppleScriptRunner.run("tell application \"System Events\" to tell appearance preferences to set dark mode to false")
+        // CoreGraphics 밝기 설정
+        let task = Process()
+        task.launchPath = "/usr/bin/osascript"
+        task.arguments = ["-e", "do shell script \"brightness \(String(format: "%.2f", clamped))\" "]
+        // 폴백: AppleScript
+        AppleScriptRunner.run("""
+        do shell script "osascript -e 'tell application \\"System Events\\"' -e 'key code 145' -e 'end tell'"
+        """)
+    }
+
+    private func openWiFiSettings() {
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.network")!)
+    }
+
+    private func openBluetoothSettings() {
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.BluetoothSettings")!)
     }
 
     private func openSettings() {
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        if NSApp.responds(to: Selector(("showSettingsWindow:"))) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        } else {
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        }
     }
 }
