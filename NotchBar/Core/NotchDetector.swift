@@ -12,8 +12,8 @@ struct NotchDetector {
     // MARK: - Constants
 
     static let notchHeight: CGFloat = 38
-    static let expandedHeight: CGFloat = 56   // 노치 높이 + 약간만 확장
-    static let expandedWidth: CGFloat = 400  // 노치보다 좌우로 넓게
+    static let expandedHeight: CGFloat = 350
+    static let expandedWidth: CGFloat = 600
 
     // MARK: - Screen Detection
 
@@ -57,12 +57,11 @@ struct NotchDetector {
         return NSRect(x: notchX, y: notchY, width: notchWidth, height: max(menuBarHeight, notchHeight))
     }
 
-    /// 노치 위치에서 좌우로 확장 — 노치 자체가 커지는 느낌
+    /// 화면 상단에서 아래로 — 노치에서 확장되는 느낌
     static func getExpandedFrame() -> NSRect {
         guard let screen = targetScreen() else { return .zero }
         let screenTop = screen.frame.maxY
         let popupX = screen.frame.origin.x + (screen.frame.width - expandedWidth) / 2
-        // 상단이 화면 최상단에 맞닿음 (노치와 이어짐)
         let popupY = screenTop - expandedHeight
         return NSRect(x: popupX, y: popupY, width: expandedWidth, height: expandedHeight)
     }

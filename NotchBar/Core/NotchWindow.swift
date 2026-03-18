@@ -2,7 +2,7 @@
 //  NotchWindow.swift
 //  NotchBar
 //
-//  노치 팝업 윈도우 관리
+//  노치 팝업 윈도우 — 접힌 상태에서도 보이고, 확장 시 애니메이션
 //
 
 import SwiftUI
@@ -14,36 +14,28 @@ class NotchViewModel: ObservableObject {
 
 class NotchWindow: NSPanel {
 
-    // MARK: - Properties
-
     var isExpanded: Bool { viewModel.isExpanded }
     private(set) var notchFrame: NSRect
     private var hostingView: NSHostingView<NotchPopupView>?
     let viewModel = NotchViewModel()
 
-    // MARK: - Initialization
-
     init(notchFrame: NSRect) {
         self.notchFrame = notchFrame
-
         super.init(
             contentRect: notchFrame,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-
         setupWindow()
         setupContent()
     }
-
-    // MARK: - Setup
 
     private func setupWindow() {
         self.level = .statusBar + 1
         self.backgroundColor = .clear
         self.isOpaque = false
-        self.hasShadow = false  // SwiftUI에서 그림자 제어
+        self.hasShadow = false
         self.ignoresMouseEvents = false
         self.acceptsMouseMovedEvents = true
         self.isMovableByWindowBackground = false
@@ -60,60 +52,49 @@ class NotchWindow: NSPanel {
         self.contentView = hostingView
     }
 
-    // MARK: - Public Methods
-
     func show() {
-        self.alphaValue = 0
-        self.ignoresMouseEvents = true
+        // 접힌 상태에서도 보이게 (노치 안의 미니 콘텐츠)
+        self.alphaValue = 1.0
         self.orderFrontRegardless()
     }
 
-    func hide() {
-        self.orderOut(nil)
-    }
+    func hide() { self.orderOut(nil) }
 
     func toggle() {
-        if isExpanded {
-            collapse()
-        } else {
-            expand()
-        }
+        if isExpanded { collapse() } else { expand() }
     }
 
     func expand() {
         guard !isExpanded else { return }
-
         let expandedFrame = NotchDetector.getExpandedFrame()
 
-        self.ignoresMouseEvents = false
-        self.setFrame(expandedFrame, display: true)
-        self.alphaValue = 1.0
-        self.orderFrontRegardless()
         viewModel.isExpanded = true
+
+        // 애니메이션으로 프레임 확장
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.3
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            self.animator().setFrame(expandedFrame, display: true, animate: true)
+        }
+        self.orderFrontRegardless()
     }
 
     func collapse() {
         guard isExpanded else { return }
-
         viewModel.isExpanded = false
 
-        // 약간의 딜레이 후 프레임 축소+숨김
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-            self.setFrame(self.notchFrame, display: true)
-            self.alphaValue = 0
-            self.ignoresMouseEvents = true
+        // 애니메이션으로 프레임 축소
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.25
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            self.animator().setFrame(self.notchFrame, display: true, animate: true)
         }
     }
 
-    /// 모니터 변경 시 notchFrame 업데이트
     func updateNotchFrame(_ frame: NSRect) {
         self.notchFrame = frame
-        if !isExpanded {
-            self.setFrame(frame, display: true)
-        }
+        if !isExpanded { self.setFrame(frame, display: true) }
     }
-
-    // MARK: - Mouse Events
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
