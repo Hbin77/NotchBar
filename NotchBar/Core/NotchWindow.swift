@@ -32,9 +32,7 @@ class NotchWindow: NSPanel {
     }
 
     private func setupWindow() {
-        // overlayWindow 레벨 — 메뉴바/노치 위에 표시 (ComfyNotch와 동일)
-        let overlayLevel = CGWindowLevelForKey(.overlayWindow)
-        self.level = NSWindow.Level(rawValue: Int(overlayLevel))
+        self.level = .popUpMenu
         self.backgroundColor = .clear
         self.isOpaque = false
         self.hasShadow = false
@@ -57,8 +55,7 @@ class NotchWindow: NSPanel {
     }
 
     func show() {
-        // 접힌 상태에서도 보이게 (노치 안의 미니 콘텐츠)
-        self.alphaValue = 1.0
+        self.alphaValue = 0  // 접힌 상태에서 숨김
         self.orderFrontRegardless()
     }
 
@@ -72,26 +69,21 @@ class NotchWindow: NSPanel {
         guard !isExpanded else { return }
         let expandedFrame = NotchDetector.getExpandedFrame()
 
-        viewModel.isExpanded = true
-
-        // 애니메이션으로 프레임 확장
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.3
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            self.animator().setFrame(expandedFrame, display: true, animate: true)
-        }
+        self.setFrame(expandedFrame, display: true)
+        self.alphaValue = 1.0
+        self.ignoresMouseEvents = false
         self.orderFrontRegardless()
+        viewModel.isExpanded = true
     }
 
     func collapse() {
         guard isExpanded else { return }
         viewModel.isExpanded = false
 
-        // 애니메이션으로 프레임 축소
-        NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.25
-            ctx.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            self.animator().setFrame(self.notchFrame, display: true, animate: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            self.setFrame(self.notchFrame, display: true)
+            self.alphaValue = 0
+            self.ignoresMouseEvents = true
         }
     }
 

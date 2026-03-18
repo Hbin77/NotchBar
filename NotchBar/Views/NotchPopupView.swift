@@ -23,74 +23,35 @@ struct NotchPopupView: View {
 
     var body: some View {
         ZStack {
-            // 배경 — 항상 순수 검정 (노치와 동일 색상)
             if viewModel.isExpanded {
                 expandedBackground
-            } else {
-                collapsedBackground
-            }
-
-            // 콘텐츠
-            if viewModel.isExpanded {
                 expandedContent
-                    .transition(.opacity)
-            } else {
-                collapsedContent
-                    .transition(.opacity)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.isExpanded)
         .onAppear { loadSettings() }
     }
 
-    // MARK: - 접힌 상태 (노치 안)
-
-    private var collapsedBackground: some View {
-        // 노치와 동일한 검정 + 하단만 둥글게 — 노치가 확장된 것처럼 보임
-        UnevenRoundedRectangle(
-            topLeadingRadius: 0, bottomLeadingRadius: 14,
-            bottomTrailingRadius: 14, topTrailingRadius: 0
-        )
-        .fill(Color.black)
-    }
-
-    private var collapsedContent: some View {
-        HStack {
-            // 왼쪽: 앨범아트
-            if let art = media.albumArtwork {
-                Image(nsImage: art)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 26, height: 26)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
-
-            Spacer()
-
-            // 오른쪽: 이퀄라이저 아이콘 (재생 중일 때)
-            if media.isPlaying {
-                Image(systemName: "waveform")
-                    .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.6))
-                    .symbolEffect(.variableColor.iterative, isActive: true)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 6)
-    }
-
-    // MARK: - 펼친 상태 (큰 패널)
+    // MARK: - 펼친 상태
 
     private var expandedBackground: some View {
-        RoundedRectangle(cornerRadius: 26)
-            .fill(Color.black)
-            .shadow(color: .black.opacity(0.6), radius: 30, y: 10)
+        RoundedRectangle(cornerRadius: 22)
+            .fill(Color.black.opacity(0.88))
+            .background(
+                RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 22))
+            .overlay(
+                RoundedRectangle(cornerRadius: 22)
+                    .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
+            )
+            .shadow(color: .black.opacity(0.5), radius: 25, y: 8)
     }
 
     private var expandedContent: some View {
         VStack(spacing: 0) {
-            // 상단 여백 (노치/메뉴바 영역)
-            Spacer().frame(height: 44)
+            Spacer().frame(height: 6)
 
             // 미디어 플레이어
             mediaSection
