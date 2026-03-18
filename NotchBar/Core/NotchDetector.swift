@@ -12,7 +12,7 @@ struct NotchDetector {
     static let notchHeight: CGFloat = 38
     static let stemHeight: CGFloat = 16
     static let expandedPanelHeight: CGFloat = 360
-    static let expandedWidth: CGFloat = 480
+    static let expandedWidth: CGFloat = 660
 
     // MARK: - Screen Detection
 
