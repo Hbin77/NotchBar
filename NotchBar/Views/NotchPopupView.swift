@@ -202,13 +202,14 @@ struct NotchPopupView: View {
             .overlay(RoundedRectangle(cornerRadius: 16).stroke(.white.opacity(0.06), lineWidth: 0.5))
             .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
 
-            // 오른쪽: 트랙 정보 + 컨트롤
-            VStack(alignment: .leading, spacing: 14) {
+            // 오른쪽: 트랙 정보 + 컨트롤 (세로 중앙 정렬)
+            VStack(spacing: 16) {
                 // 트랙 정보
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(spacing: 4) {
                     Text(media.trackTitle.isEmpty ? "재생 중인 음악 없음" : media.trackTitle)
                         .font(.system(size: 18, weight: .semibold))
                         .lineLimit(2)
+                        .multilineTextAlignment(.center)
                         .foregroundColor(media.trackTitle.isEmpty ? .white.opacity(0.25) : .white)
                     if !media.artistName.isEmpty {
                         Text(media.artistName)
@@ -219,22 +220,21 @@ struct NotchPopupView: View {
                 }
 
                 // 재생 컨트롤
-                HStack(spacing: 20) {
-                    mediaBtn("backward.fill", 14) { media.previousTrack() }
-                    mediaBtn(media.isPlaying ? "pause.fill" : "play.fill", 20, primary: true) { media.playPause() }
-                    mediaBtn("forward.fill", 14) { media.nextTrack() }
+                HStack(spacing: 24) {
+                    mediaBtn("backward.fill", 15) { media.previousTrack() }
+                    mediaBtn(media.isPlaying ? "pause.fill" : "play.fill", 22, primary: true) { media.playPause() }
+                    mediaBtn("forward.fill", 15) { media.nextTrack() }
                 }
 
                 // 볼륨
-                VStack(spacing: 4) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "speaker.fill").font(.system(size: 9)).foregroundColor(.white.opacity(0.25))
-                        wideSlider(value: $volume) { setVolume($0) }
-                        Image(systemName: "speaker.wave.3.fill").font(.system(size: 9)).foregroundColor(.white.opacity(0.25))
-                    }
+                HStack(spacing: 6) {
+                    Image(systemName: "speaker.fill").font(.system(size: 9)).foregroundColor(.white.opacity(0.25))
+                    wideSlider(value: $volume) { setVolume($0) }
+                    Image(systemName: "speaker.wave.3.fill").font(.system(size: 9)).foregroundColor(.white.opacity(0.25))
                 }
+                .padding(.horizontal, 10)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
