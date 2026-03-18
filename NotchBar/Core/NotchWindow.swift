@@ -2,7 +2,7 @@
 //  NotchWindow.swift
 //  NotchBar
 //
-//  노치 팝업 윈도우 — 접힌 상태에서도 보이고, 확장 시 노치에서 확장
+//  노치 팝업 윈도우
 //
 
 import SwiftUI
@@ -11,11 +11,11 @@ import AppKit
 class NotchViewModel: ObservableObject {
     @Published var isExpanded = false
     @Published var notchWidth: CGFloat
-    @Published var menuBarHeight: CGFloat
+    @Published var stemHeight: CGFloat
 
-    init(notchWidth: CGFloat = 200, menuBarHeight: CGFloat = 38) {
+    init(notchWidth: CGFloat = 200, stemHeight: CGFloat = 20) {
         self.notchWidth = notchWidth
-        self.menuBarHeight = menuBarHeight
+        self.stemHeight = stemHeight
     }
 }
 
@@ -30,8 +30,8 @@ class NotchWindow: NSPanel {
     init(notchFrame: NSRect) {
         self.notchFrame = notchFrame
         self.viewModel = NotchViewModel(
-            notchWidth: NotchDetector.hasNotch() ? NotchDetector.getNotchWidth() + 20 : 200,
-            menuBarHeight: NotchDetector.getMenuBarHeight()
+            notchWidth: NotchDetector.hasNotch() ? NotchDetector.getNotchWidth() + 10 : 200,
+            stemHeight: NotchDetector.stemHeight
         )
         super.init(
             contentRect: notchFrame,
@@ -79,7 +79,6 @@ class NotchWindow: NSPanel {
 
     func expand() {
         guard !isExpanded else { return }
-        // 진행 중인 collapse 취소
         collapseWorkItem?.cancel()
         collapseWorkItem = nil
 
@@ -107,8 +106,8 @@ class NotchWindow: NSPanel {
 
     func updateNotchFrame(_ frame: NSRect) {
         self.notchFrame = frame
-        viewModel.notchWidth = NotchDetector.hasNotch() ? NotchDetector.getNotchWidth() + 20 : 200
-        viewModel.menuBarHeight = NotchDetector.getMenuBarHeight()
+        viewModel.notchWidth = NotchDetector.hasNotch() ? NotchDetector.getNotchWidth() + 10 : 200
+        viewModel.stemHeight = NotchDetector.stemHeight
         if !isExpanded { self.setFrame(frame, display: true) }
     }
 
