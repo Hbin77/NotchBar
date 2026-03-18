@@ -12,8 +12,8 @@ struct NotchDetector {
     // MARK: - Constants
 
     static let notchHeight: CGFloat = 38
-    static let expandedHeight: CGFloat = 340
-    static let expandedWidth: CGFloat = 580
+    static let expandedHeight: CGFloat = 300
+    static let expandedWidth: CGFloat = 520
 
     // MARK: - Screen Detection
 
@@ -57,12 +57,14 @@ struct NotchDetector {
         return NSRect(x: notchX, y: notchY, width: notchWidth, height: max(menuBarHeight, notchHeight))
     }
 
-    /// 노치 상단에서 아래로 펼쳐지는 확장 프레임
+    /// 메뉴바 아래에서 시작하는 확장 프레임 (5px 여유)
     static func getExpandedFrame() -> NSRect {
-        let notch = getNotchFrame()
-        guard notch != .zero else { return .zero }
-        let popupX = notch.midX - expandedWidth / 2
-        return NSRect(x: popupX, y: notch.maxY - expandedHeight, width: expandedWidth, height: expandedHeight)
+        guard let screen = targetScreen() else { return .zero }
+        let topMargin: CGFloat = 5  // 메뉴바 아래 여유
+        let visibleTop = screen.visibleFrame.maxY - topMargin
+        let popupX = screen.frame.origin.x + (screen.frame.width - expandedWidth) / 2
+        let popupY = visibleTop - expandedHeight
+        return NSRect(x: popupX, y: popupY, width: expandedWidth, height: expandedHeight)
     }
 
     static func getHoverDetectionFrame() -> NSRect {

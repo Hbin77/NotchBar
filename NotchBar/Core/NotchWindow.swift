@@ -63,6 +63,8 @@ class NotchWindow: NSPanel {
     // MARK: - Public Methods
 
     func show() {
+        self.alphaValue = 0
+        self.ignoresMouseEvents = true
         self.orderFrontRegardless()
     }
 
@@ -83,18 +85,11 @@ class NotchWindow: NSPanel {
 
         let expandedFrame = NotchDetector.getExpandedFrame()
 
-        // 먼저 상태 변경
-        viewModel.isExpanded = true
-
-        // 윈도우를 앞으로 가져오기
-        self.orderFrontRegardless()
+        self.ignoresMouseEvents = false
+        self.setFrame(expandedFrame, display: true)
         self.alphaValue = 1.0
-
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.3
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            self.animator().setFrame(expandedFrame, display: true, animate: true)
-        }
+        self.orderFrontRegardless()
+        viewModel.isExpanded = true
     }
 
     func collapse() {
@@ -102,14 +97,12 @@ class NotchWindow: NSPanel {
 
         viewModel.isExpanded = false
 
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.2
-            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            self.animator().setFrame(self.notchFrame, display: true, animate: true)
-        }, completionHandler: {
-            // 애니메이션 완료 후 윈도우를 다시 앞으로
-            self.orderFrontRegardless()
-        })
+        // 약간의 딜레이 후 프레임 축소+숨김
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            self.setFrame(self.notchFrame, display: true)
+            self.alphaValue = 0
+            self.ignoresMouseEvents = true
+        }
     }
 
     /// 모니터 변경 시 notchFrame 업데이트
