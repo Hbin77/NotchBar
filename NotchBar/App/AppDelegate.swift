@@ -6,6 +6,7 @@
 import SwiftUI
 import AppKit
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     // MARK: - Properties
@@ -78,10 +79,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // 호버 매니저 설정
         hoverManager = HoverManager(notchWindow: notchWindow)
         hoverManager?.startTracking()
-        
+
         // 미디어 매니저 설정
         mediaManager = MediaManager.shared
         mediaManager?.startMonitoring()
+
+        // 날씨 매니저 설정
+        WeatherManager.shared.startMonitoring()
     }
     
     // MARK: - Actions

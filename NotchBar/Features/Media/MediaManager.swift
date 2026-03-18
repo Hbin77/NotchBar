@@ -8,7 +8,9 @@
 import Foundation
 import AppKit
 import Combine
+import os.log
 
+@MainActor
 class MediaManager: ObservableObject {
     
     // MARK: - Singleton
@@ -28,6 +30,7 @@ class MediaManager: ObservableObject {
     // MARK: - Private Properties
     
     private var timer: Timer?
+    private var isUpdating = false
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Initialization
@@ -37,21 +40,18 @@ class MediaManager: ObservableObject {
     // MARK: - Public Methods
     
     func startMonitoring() {
-        // 1초마다 Now Playing 정보 업데이트
+        timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.updateNowPlaying()
+            Task { @MainActor in
+                self?.updateNowPlaying()
+            }
         }
-        
-        // 즉시 한번 실행
         updateNowPlaying()
-        
-        print("🎵 미디어 모니터링 시작")
     }
-    
+
     func stopMonitoring() {
         timer?.invalidate()
         timer = nil
-        print("🎵 미디어 모니터링 종료")
     }
     
     // MARK: - Playback Control
@@ -71,10 +71,8 @@ class MediaManager: ObservableObject {
     // MARK: - Private Methods
     
     private func updateNowPlaying() {
-        // MRMediaRemote 프레임워크 사용 (Private API)
-        // 실제 구현에서는 MediaRemote.framework 링크 필요
-        
-        // 대안: AppleScript 사용
+        guard !isUpdating else { return }
+        isUpdating = true
         updateViaAppleScript()
     }
     
@@ -119,55 +117,61 @@ class MediaManager: ObservableObject {
         return ""
         """
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        Task.detached { [weak self] in
+            defer { Task { @MainActor in self?.isUpdating = false } }
+
             // Music 먼저 시도
-            if let result = self?.runAppleScript(musicScript), !result.isEmpty {
-                self?.parseMediaInfo(result)
+            if let result = MediaManager.runAppleScript(musicScript), !result.isEmpty {
+                await self?.parseMediaInfo(result)
                 return
             }
-            
+
             // Spotify 시도
-            if let result = self?.runAppleScript(spotifyScript), !result.isEmpty {
-                self?.parseMediaInfo(result)
+            if let result = MediaManager.runAppleScript(spotifyScript), !result.isEmpty {
+                await self?.parseMediaInfo(result)
                 return
             }
-            
+
             // 재생 중인 미디어 없음
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self?.isPlaying = false
                 self?.trackTitle = ""
                 self?.artistName = ""
             }
         }
     }
-    
-    private func runAppleScript(_ source: String) -> String? {
+
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "NotchBar", category: "Media")
+
+    nonisolated private static func runAppleScript(_ source: String) -> String? {
         var error: NSDictionary?
         guard let script = NSAppleScript(source: source) else { return nil }
         let output = script.executeAndReturnError(&error)
-        
+
         if let error = error {
-            print("AppleScript Error: \(error)")
+            logger.debug("AppleScript error: \(error)")
             return nil
         }
-        
+
         return output.stringValue
     }
     
     private func parseMediaInfo(_ info: String) {
         let components = info.split(separator: "|").map(String.init)
-        
+
         guard components.count >= 3 else { return }
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.trackTitle = components[0]
-            self?.artistName = components[1]
-            self?.isPlaying = components[2] == "playing"
-        }
+
+        trackTitle = components[0]
+        artistName = components[1]
+        isPlaying = components[2] == "playing"
     }
     
     private func sendMediaKey(_ key: MediaKey) {
-        // 미디어 키 이벤트 전송
+        guard AXIsProcessTrusted() else {
+            Self.logger.warning("Accessibility permission required for media key control")
+            return
+        }
+
         let keyCode: Int32
         switch key {
         case .playPause: keyCode = 16  // NX_KEYTYPE_PLAY

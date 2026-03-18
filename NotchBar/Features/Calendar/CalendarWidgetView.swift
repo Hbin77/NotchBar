@@ -119,7 +119,7 @@ struct CalendarWidgetView: View {
     
     private var eventsListView: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ForEach(manager.todayEvents.prefix(3)) { event in
+            ForEach(Array(manager.todayEvents.prefix(3))) { event in
                 EventRowView(event: event)
             }
             
@@ -133,11 +133,15 @@ struct CalendarWidgetView: View {
     
     // MARK: - Helpers
     
-    private var todayDateString: String {
+    private static let todayFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d (E)"
         formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.string(from: Date())
+        return formatter
+    }()
+
+    private var todayDateString: String {
+        Self.todayFormatter.string(from: Date())
     }
 }
 

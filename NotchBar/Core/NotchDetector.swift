@@ -29,19 +29,11 @@ struct NotchDetector {
     static func hasNotch() -> Bool {
         guard let screen = NSScreen.main else { return false }
         
-        // macOS 12+ 에서 safeAreaInsets 확인
         if #available(macOS 12.0, *) {
             let safeArea = screen.safeAreaInsets
-            // 상단 safe area가 있으면 노치 존재
             return safeArea.top > 0
         }
-        
-        // 대체 방법: auxiliaryTopLeftArea/auxiliaryTopRightArea 확인
-        if #available(macOS 12.0, *) {
-            let hasAuxArea = screen.auxiliaryTopLeftArea != nil || screen.auxiliaryTopRightArea != nil
-            return hasAuxArea
-        }
-        
+
         return false
     }
     

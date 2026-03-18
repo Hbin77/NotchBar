@@ -55,9 +55,6 @@ struct WeatherWidgetView: View {
         .onHover { hovering in
             isHovering = hovering
         }
-        .onAppear {
-            weather.startMonitoring()
-        }
     }
 }
 

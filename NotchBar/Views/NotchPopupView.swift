@@ -8,22 +8,26 @@
 import SwiftUI
 
 struct NotchPopupView: View {
-    
-    var isExpanded: Bool = false
-    
+
+    @ObservedObject var viewModel: NotchViewModel
+
     @StateObject private var mediaManager = MediaManager.shared
-    @StateObject private var systemMonitor = SystemMonitor.shared
-    @StateObject private var weatherManager = WeatherManager.shared
     @StateObject private var calendarManager = CalendarManager.shared
-    
+
+    @AppStorage("showMediaWidget") private var showMediaWidget = true
+    @AppStorage("showWeatherWidget") private var showWeatherWidget = true
+    @AppStorage("showSystemWidget") private var showSystemWidget = true
+    @AppStorage("showCalendarWidget") private var showCalendarWidget = true
+    @AppStorage("showQuickSettings") private var showQuickSettings = true
+
     @State private var appearAnimation = false
     
     var body: some View {
         ZStack {
             // 배경 - 개선된 글래스모피즘
             backgroundView
-            
-            if isExpanded {
+
+            if viewModel.isExpanded {
                 expandedContent
                     .opacity(appearAnimation ? 1 : 0)
                     .offset(y: appearAnimation ? 0 : -10)
@@ -31,8 +35,8 @@ struct NotchPopupView: View {
                 collapsedContent
             }
         }
-        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
-        .onChange(of: isExpanded) { _, newValue in
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.isExpanded)
+        .onChange(of: viewModel.isExpanded) { _, newValue in
             if newValue {
                 withAnimation(.easeOut(duration: 0.3).delay(0.1)) {
                     appearAnimation = true
@@ -46,10 +50,10 @@ struct NotchPopupView: View {
     // MARK: - Background
     
     private var backgroundView: some View {
-        RoundedRectangle(cornerRadius: isExpanded ? 24 : 12)
+        RoundedRectangle(cornerRadius: viewModel.isExpanded ? 24 : 12)
             .fill(.ultraThinMaterial)
             .overlay(
-                RoundedRectangle(cornerRadius: isExpanded ? 24 : 12)
+                RoundedRectangle(cornerRadius: viewModel.isExpanded ? 24 : 12)
                     .stroke(
                         LinearGradient(
                             colors: [.white.opacity(0.2), .white.opacity(0.05)],
@@ -59,7 +63,7 @@ struct NotchPopupView: View {
                         lineWidth: 1
                     )
             )
-            .shadow(color: .black.opacity(0.3), radius: isExpanded ? 20 : 10, y: 5)
+            .shadow(color: .black.opacity(0.3), radius: viewModel.isExpanded ? 20 : 10, y: 5)
     }
     
     // MARK: - Collapsed Content (노치 기본 상태)
@@ -95,30 +99,36 @@ struct NotchPopupView: View {
     private var expandedContent: some View {
         VStack(spacing: 12) {
             // 상단: 미디어 플레이어
-            MediaWidgetView()
-                .padding(.horizontal, 4)
-            
-            dividerView
-            
-            // 중단: 위젯 그리드 (3열)
-            HStack(alignment: .top, spacing: 12) {
-                // 날씨
-                WeatherWidgetView()
-                    .frame(maxWidth: .infinity)
-                
-                // 캘린더
-                CalendarWidgetView()
-                    .frame(maxWidth: .infinity)
-                
-                // 시스템 모니터
-                SystemWidgetView()
-                    .frame(maxWidth: .infinity)
+            if showMediaWidget {
+                MediaWidgetView()
+                    .padding(.horizontal, 4)
+
+                dividerView
             }
-            
-            dividerView
-            
-            // 하단: 빠른 설정
-            QuickSettingsView()
+
+            // 중단: 위젯 그리드
+            HStack(alignment: .top, spacing: 12) {
+                if showWeatherWidget {
+                    WeatherWidgetView()
+                        .frame(maxWidth: .infinity)
+                }
+
+                if showCalendarWidget {
+                    CalendarWidgetView()
+                        .frame(maxWidth: .infinity)
+                }
+
+                if showSystemWidget {
+                    SystemWidgetView()
+                        .frame(maxWidth: .infinity)
+                }
+            }
+
+            if showQuickSettings {
+                dividerView
+
+                QuickSettingsView()
+            }
         }
         .padding(16)
     }
@@ -140,10 +150,14 @@ struct NotchPopupView: View {
 
 #Preview {
     VStack(spacing: 20) {
-        NotchPopupView(isExpanded: false)
+        NotchPopupView(viewModel: NotchViewModel())
             .frame(width: 180, height: 38)
-        
-        NotchPopupView(isExpanded: true)
+
+        NotchPopupView(viewModel: {
+            let vm = NotchViewModel()
+            vm.isExpanded = true
+            return vm
+        }())
             .frame(width: 400, height: 200)
     }
     .padding()
