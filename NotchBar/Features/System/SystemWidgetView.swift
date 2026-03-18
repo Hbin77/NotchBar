@@ -10,9 +10,21 @@ import SwiftUI
 struct SystemWidgetView: View {
     
     @StateObject private var monitor = SystemMonitor.shared
+    @State private var isHovering = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // 헤더
+            HStack(spacing: 6) {
+                Image(systemName: "gauge.with.dots.needle.bottom.50percent")
+                    .font(.system(size: 11))
+                    .foregroundColor(.accentColor)
+                
+                Text("시스템")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
+            
             // CPU
             StatRowView(
                 icon: "cpu",
@@ -36,6 +48,7 @@ struct SystemWidgetView: View {
                 Image(systemName: batteryIcon)
                     .font(.system(size: 11))
                     .foregroundColor(batteryColor)
+                    .symbolEffect(.pulse, options: .repeating, isActive: monitor.isCharging)
                 
                 Text("\(monitor.batteryLevel)%")
                     .font(.system(size: 11, weight: .medium))
@@ -48,6 +61,16 @@ struct SystemWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.secondary.opacity(isHovering ? 0.15 : 0.1))
+        )
+        .scaleEffect(isHovering ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
     
     // MARK: - Helpers

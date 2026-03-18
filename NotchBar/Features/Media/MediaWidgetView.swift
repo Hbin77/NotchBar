@@ -10,6 +10,8 @@ import SwiftUI
 struct MediaWidgetView: View {
     
     @StateObject private var mediaManager = MediaManager.shared
+    @State private var isHovering = false
+    @State private var artworkRotation: Double = 0
     
     var body: some View {
         HStack(spacing: 12) {
@@ -38,6 +40,15 @@ struct MediaWidgetView: View {
                 playbackControls
             }
         }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.secondary.opacity(isHovering ? 0.15 : 0.1))
+        )
+        .animation(.easeInOut(duration: 0.2), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
+        }
     }
     
     // MARK: - Subviews
@@ -54,36 +65,88 @@ struct MediaWidgetView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .frame(width: 44, height: 44)
-        .background(Color.secondary.opacity(0.2))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .frame(width: 48, height: 48)
+        .background(
+            LinearGradient(
+                colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+        .rotationEffect(.degrees(mediaManager.isPlaying ? artworkRotation : 0))
+        .onAppear {
+            if mediaManager.isPlaying {
+                withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+                    artworkRotation = 360
+                }
+            }
+        }
+        .onChange(of: mediaManager.isPlaying) { _, isPlaying in
+            if isPlaying {
+                withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+                    artworkRotation = 360
+                }
+            } else {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    artworkRotation = 0
+                }
+            }
+        }
     }
     
     private var playbackControls: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             // 이전 트랙
-            Button(action: { mediaManager.previousTrack() }) {
-                Image(systemName: "backward.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(.primary)
+            MediaControlButton(icon: "backward.fill", size: 14) {
+                mediaManager.previousTrack()
             }
-            .buttonStyle(.plain)
             
             // 재생/일시정지
-            Button(action: { mediaManager.playPause() }) {
-                Image(systemName: mediaManager.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.primary)
+            MediaControlButton(
+                icon: mediaManager.isPlaying ? "pause.fill" : "play.fill",
+                size: 20,
+                isPrimary: true
+            ) {
+                mediaManager.playPause()
             }
-            .buttonStyle(.plain)
             
             // 다음 트랙
-            Button(action: { mediaManager.nextTrack() }) {
-                Image(systemName: "forward.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(.primary)
+            MediaControlButton(icon: "forward.fill", size: 14) {
+                mediaManager.nextTrack()
             }
-            .buttonStyle(.plain)
+        }
+    }
+}
+
+// MARK: - MediaControlButton
+
+struct MediaControlButton: View {
+    let icon: String
+    let size: CGFloat
+    var isPrimary: Bool = false
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: size, weight: isPrimary ? .semibold : .regular))
+                .foregroundColor(isPrimary ? .accentColor : .primary)
+                .frame(width: isPrimary ? 36 : 28, height: isPrimary ? 36 : 28)
+                .background(
+                    Circle()
+                        .fill(isPrimary ? Color.accentColor.opacity(0.2) : Color.clear)
+                )
+                .scaleEffect(isPressed ? 0.9 : 1.0)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = hovering
+            }
         }
     }
 }
