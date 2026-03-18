@@ -49,20 +49,20 @@ struct NotchDetector {
     static func getNotchFrame() -> NSRect {
         guard let screen = targetScreen() else { return .zero }
         let sf = screen.frame
-        let notchWidth = hasNotch() ? getNotchWidth() + 20 : 250  // 노치보다 살짝 넓게
-        let notchX = sf.origin.x + (sf.width - notchWidth) / 2
-        // 화면 절대 최상단 (노치 영역)
-        let notchY = sf.origin.y + sf.height - notchHeight
-        return NSRect(x: notchX, y: notchY, width: notchWidth, height: notchHeight)
+        let notchWidth = hasNotch() ? getNotchWidth() + 30 : 260
+        let centerX = sf.origin.x + (sf.width - notchWidth) / 2
+        // ComfyNotch 방식: screen.frame.height 기준, origin.y 오프셋 적용
+        let y = sf.origin.y + sf.height - notchHeight
+        return NSRect(x: centerX, y: y, width: notchWidth, height: notchHeight)
     }
 
-    /// 화면 상단에서 아래로 — 노치에서 확장되는 느낌
     static func getExpandedFrame() -> NSRect {
         guard let screen = targetScreen() else { return .zero }
-        let screenTop = screen.frame.maxY
-        let popupX = screen.frame.origin.x + (screen.frame.width - expandedWidth) / 2
-        let popupY = screenTop - expandedHeight
-        return NSRect(x: popupX, y: popupY, width: expandedWidth, height: expandedHeight)
+        let sf = screen.frame
+        let centerX = sf.origin.x + (sf.width - expandedWidth) / 2
+        // 화면 최상단에서 아래로 확장
+        let y = sf.origin.y + sf.height - expandedHeight
+        return NSRect(x: centerX, y: y, width: expandedWidth, height: expandedHeight)
     }
 
     static func getHoverDetectionFrame() -> NSRect {

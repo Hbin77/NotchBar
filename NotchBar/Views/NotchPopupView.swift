@@ -46,8 +46,12 @@ struct NotchPopupView: View {
     // MARK: - 접힌 상태 (노치 안)
 
     private var collapsedBackground: some View {
-        // 노치와 동일한 검정 — 경계 없이 이어짐
-        Color.black
+        // 노치와 동일한 검정 + 하단만 둥글게 — 노치가 확장된 것처럼 보임
+        UnevenRoundedRectangle(
+            topLeadingRadius: 0, bottomLeadingRadius: 14,
+            bottomTrailingRadius: 14, topTrailingRadius: 0
+        )
+        .fill(Color.black)
     }
 
     private var collapsedContent: some View {
