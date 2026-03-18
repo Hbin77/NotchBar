@@ -180,8 +180,8 @@ struct NotchPopupView: View {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     private var musicPage: some View {
-        VStack(spacing: 12) {
-            // 앨범아트
+        HStack(spacing: 14) {
+            // 왼쪽: 대형 앨범아트
             Group {
                 if let art = media.albumArtwork {
                     Image(nsImage: art).resizable().aspectRatio(contentMode: .fill)
@@ -192,36 +192,57 @@ struct NotchPopupView: View {
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         )
                         Image(systemName: "music.note")
-                            .font(.system(size: 28))
+                            .font(.system(size: 32))
                             .foregroundColor(.white.opacity(0.15))
                     }
                 }
             }
-            .frame(width: 120, height: 120)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .aspectRatio(1, contentMode: .fit)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.06), lineWidth: 0.5))
             .shadow(color: .black.opacity(0.35), radius: 10, y: 5)
 
-            // 트랙 정보
-            VStack(spacing: 3) {
+            // 오른쪽: 트랙 정보 + 컨트롤
+            VStack(alignment: .leading, spacing: 0) {
+                Spacer(minLength: 0)
+
+                // 트랙 제목
                 Text(media.trackTitle.isEmpty ? "재생 중인 음악 없음" : media.trackTitle)
-                    .font(.system(size: 14, weight: .semibold))
-                    .lineLimit(1)
+                    .font(.system(size: 15, weight: .semibold))
+                    .lineLimit(2)
                     .foregroundColor(media.trackTitle.isEmpty ? .white.opacity(0.25) : .white)
+
+                // 아티스트
                 if !media.artistName.isEmpty {
                     Text(media.artistName)
                         .font(.system(size: 11))
                         .foregroundColor(.white.opacity(0.4))
                         .lineLimit(1)
+                        .padding(.top, 2)
                 }
-            }
 
-            // 컨트롤
-            HStack(spacing: 24) {
-                mediaBtn("backward.fill", 14) { media.previousTrack() }
-                mediaBtn(media.isPlaying ? "pause.fill" : "play.fill", 20, primary: true) { media.playPause() }
-                mediaBtn("forward.fill", 14) { media.nextTrack() }
+                Spacer(minLength: 0)
+
+                // 재생 컨트롤
+                HStack(spacing: 18) {
+                    mediaBtn("backward.fill", 13) { media.previousTrack() }
+                    mediaBtn(media.isPlaying ? "pause.fill" : "play.fill", 18, primary: true) { media.playPause() }
+                    mediaBtn("forward.fill", 13) { media.nextTrack() }
+                }
+
+                Spacer(minLength: 0)
+
+                // 볼륨 미니
+                HStack(spacing: 5) {
+                    Image(systemName: "speaker.fill").font(.system(size: 8)).foregroundColor(.white.opacity(0.25))
+                    wideSlider(value: $volume) { setVolume($0) }
+                    Image(systemName: "speaker.wave.3.fill").font(.system(size: 8)).foregroundColor(.white.opacity(0.25))
+                }
+
+                Spacer(minLength: 0)
             }
+            .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
