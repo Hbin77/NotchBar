@@ -23,7 +23,7 @@ class NotchWindow: NSPanel {
         self.notchFrame = notchFrame
         super.init(
             contentRect: notchFrame,
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -32,7 +32,9 @@ class NotchWindow: NSPanel {
     }
 
     private func setupWindow() {
-        self.level = .statusBar + 1
+        // overlayWindow 레벨 — 메뉴바/노치 위에 표시 (ComfyNotch와 동일)
+        let overlayLevel = CGWindowLevelForKey(.overlayWindow)
+        self.level = NSWindow.Level(rawValue: Int(overlayLevel))
         self.backgroundColor = .clear
         self.isOpaque = false
         self.hasShadow = false
@@ -48,6 +50,8 @@ class NotchWindow: NSPanel {
         let contentView = NotchPopupView(viewModel: viewModel)
         hostingView = NSHostingView(rootView: contentView)
         hostingView?.autoresizingMask = [.width, .height]
+        hostingView?.wantsLayer = true
+        hostingView?.layer?.masksToBounds = false
         hostingView?.frame = NSRect(origin: .zero, size: self.frame.size)
         self.contentView = hostingView
     }

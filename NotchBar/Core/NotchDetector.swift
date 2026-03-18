@@ -49,12 +49,11 @@ struct NotchDetector {
     static func getNotchFrame() -> NSRect {
         guard let screen = targetScreen() else { return .zero }
         let sf = screen.frame
-        let vf = screen.visibleFrame
-        let notchWidth = hasNotch() ? getNotchWidth() : 200
-        let menuBarHeight = sf.maxY - vf.maxY
+        let notchWidth = hasNotch() ? getNotchWidth() + 20 : 250  // 노치보다 살짝 넓게
         let notchX = sf.origin.x + (sf.width - notchWidth) / 2
-        let notchY = sf.maxY - menuBarHeight
-        return NSRect(x: notchX, y: notchY, width: notchWidth, height: max(menuBarHeight, notchHeight))
+        // 화면 절대 최상단 (노치 영역)
+        let notchY = sf.origin.y + sf.height - notchHeight
+        return NSRect(x: notchX, y: notchY, width: notchWidth, height: notchHeight)
     }
 
     /// 화면 상단에서 아래로 — 노치에서 확장되는 느낌
