@@ -2,20 +2,8 @@
 //  NotchPopupView.swift
 //  NotchBar
 //
-//  노치에서 확장되는 팝업 — 섹션별 카드 디자인
-//
-//  구조:
-//  ╭──────╮
-//  │ stem │
-//  ╭╯      ╰╮
-//  │ 🎵 음악  │  ← Now Playing 섹션
-//  │─────────│
-//  │ 🌤 │ 📅  │  ← 날씨 + 캘린더 섹션
-//  │─────────│
-//  │ 💻 시스템 │  ← 시스템 모니터 섹션
-//  │─────────│
-//  │ 🎛 제어판 │  ← 볼륨, 밝기, 토글
-//  ╰─────────╯
+//  노치에서 확장되는 팝업 — 스와이프 페이지 디자인
+//  좌우 스와이프로 섹션 이동: 음악 → 정보 → 시스템 → 제어판
 //
 
 import SwiftUI
@@ -29,9 +17,15 @@ struct NotchPopupView: View {
     @StateObject private var system = SystemMonitor.shared
     @StateObject private var calendar = CalendarManager.shared
 
+    @State private var currentPage = 0
+    @State private var dragOffset: CGFloat = 0
     @State private var volume: Double = 0.5
     @State private var isDarkMode = false
     @State private var contentVisible = false
+
+    private let pageCount = 4
+    private let pageLabels = ["음악", "정보", "시스템", "제어판"]
+    private let pageIcons = ["music.note", "cloud.sun.fill", "cpu", "slider.horizontal.3"]
 
     var body: some View {
         ZStack {
@@ -49,6 +43,8 @@ struct NotchPopupView: View {
                 }
             } else {
                 contentVisible = false
+                currentPage = 0
+                dragOffset = 0
             }
         }
     }
@@ -58,7 +54,26 @@ struct NotchPopupView: View {
     private var expandedPanel: some View {
         ZStack {
             notchBackground
-            panelContent
+
+            VStack(spacing: 0) {
+                Spacer().frame(height: viewModel.stemHeight + 26)
+
+                // 탭 인디케이터
+                tabIndicator
+                    .padding(.horizontal, NotchDesign.Spacing.xl)
+                    .padding(.bottom, NotchDesign.Spacing.sm)
+
+                // 페이지 콘텐츠
+                pageContent
+                    .opacity(contentVisible ? 1 : 0)
+                    .offset(y: contentVisible ? 0 : -6)
+
+                Spacer(minLength: NotchDesign.Spacing.md)
+
+                // 페이지 도트
+                pageDots
+                    .padding(.bottom, NotchDesign.Spacing.md)
+            }
         }
     }
 
@@ -84,36 +99,112 @@ struct NotchPopupView: View {
             .shadow(color: .black.opacity(0.55), radius: 35, y: 12)
     }
 
-    // MARK: - Content
+    // MARK: - Tab Indicator
 
-    private var panelContent: some View {
-        VStack(spacing: 0) {
-            // stem + S-curve 여백
-            Spacer().frame(height: viewModel.stemHeight + 28)
+    private var tabIndicator: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<pageCount, id: \.self) { i in
+                Button {
+                    withAnimation(NotchDesign.Anim.expand) {
+                        currentPage = i
+                        dragOffset = 0
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: pageIcons[i])
+                            .font(.system(size: 9))
+                        Text(pageLabels[i])
+                            .font(NotchDesign.Font.caption)
+                    }
+                    .foregroundColor(currentPage == i ? .white : .white.opacity(0.35))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(currentPage == i ? Color.white.opacity(0.1) : .clear)
+                    )
+                }
+                .buttonStyle(.plain)
 
-            // 섹션들
-            VStack(spacing: NotchDesign.Spacing.sm + 2) {
-                nowPlayingSection
-                infoRow
-                systemSection
-                controlSection
+                if i < pageCount - 1 { Spacer() }
             }
-            .padding(.horizontal, NotchDesign.Spacing.xl)
-            .opacity(contentVisible ? 1 : 0)
-            .offset(y: contentVisible ? 0 : -6)
-
-            Spacer(minLength: NotchDesign.Spacing.lg)
         }
+    }
+
+    // MARK: - Page Content (Swipeable)
+
+    private var pageContent: some View {
+        GeometryReader { geo in
+            let pageWidth = geo.size.width
+            let totalOffset = -CGFloat(currentPage) * pageWidth + dragOffset
+
+            HStack(spacing: 0) {
+                // Page 0: 음악
+                musicPage
+                    .frame(width: pageWidth)
+                    .padding(.horizontal, NotchDesign.Spacing.xl)
+
+                // Page 1: 정보 (날씨 + 캘린더)
+                infoPage
+                    .frame(width: pageWidth)
+                    .padding(.horizontal, NotchDesign.Spacing.xl)
+
+                // Page 2: 시스템
+                systemPage
+                    .frame(width: pageWidth)
+                    .padding(.horizontal, NotchDesign.Spacing.xl)
+
+                // Page 3: 제어판
+                controlPage
+                    .frame(width: pageWidth)
+                    .padding(.horizontal, NotchDesign.Spacing.xl)
+            }
+            .offset(x: totalOffset)
+            .animation(NotchDesign.Anim.expand, value: currentPage)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        dragOffset = value.translation.width
+                    }
+                    .onEnded { value in
+                        let threshold: CGFloat = pageWidth * 0.2
+                        let velocity = value.predictedEndTranslation.width
+
+                        withAnimation(NotchDesign.Anim.expand) {
+                            if value.translation.width < -threshold || velocity < -200 {
+                                currentPage = min(currentPage + 1, pageCount - 1)
+                            } else if value.translation.width > threshold || velocity > 200 {
+                                currentPage = max(currentPage - 1, 0)
+                            }
+                            dragOffset = 0
+                        }
+                    }
+            )
+        }
+        .clipped()
         .foregroundColor(.white)
     }
 
+    // MARK: - Page Dots
+
+    private var pageDots: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<pageCount, id: \.self) { i in
+                Circle()
+                    .fill(currentPage == i ? Color.white.opacity(0.8) : Color.white.opacity(0.2))
+                    .frame(width: currentPage == i ? 6 : 4, height: currentPage == i ? 6 : 4)
+                    .animation(NotchDesign.Anim.quick, value: currentPage)
+            }
+        }
+    }
+
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // MARK: - 🎵 Now Playing 섹션
+    // MARK: - Page 0: 🎵 음악
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    private var nowPlayingSection: some View {
-        HStack(spacing: NotchDesign.Spacing.md) {
-            // 앨범아트
+    private var musicPage: some View {
+        VStack(spacing: NotchDesign.Spacing.lg) {
+            // 대형 앨범아트
             Group {
                 if let art = media.albumArtwork {
                     Image(nsImage: art).resizable().aspectRatio(contentMode: .fill)
@@ -125,248 +216,361 @@ struct NotchPopupView: View {
                             endPoint: .bottomTrailing
                         )
                         Image(systemName: "music.note")
-                            .font(.system(size: 22))
-                            .foregroundColor(.white.opacity(0.25))
+                            .font(.system(size: 36))
+                            .foregroundColor(.white.opacity(0.2))
                     }
                 }
             }
-            .frame(width: 64, height: 64)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .frame(width: 140, height: 140)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 16)
                     .stroke(.white.opacity(0.08), lineWidth: 0.5)
             )
-            .shadow(color: .black.opacity(0.3), radius: 6, y: 3)
+            .shadow(color: .black.opacity(0.4), radius: 12, y: 6)
 
-            VStack(alignment: .leading, spacing: 4) {
+            // 트랙 정보
+            VStack(spacing: 4) {
                 Text(media.trackTitle.isEmpty ? "재생 중인 음악 없음" : media.trackTitle)
-                    .font(NotchDesign.Font.title)
+                    .font(.system(size: 16, weight: .semibold))
                     .lineLimit(1)
                     .foregroundColor(media.trackTitle.isEmpty ? .white.opacity(0.3) : .white)
 
                 if !media.artistName.isEmpty {
                     Text(media.artistName)
-                        .font(NotchDesign.Font.caption)
+                        .font(NotchDesign.Font.body)
                         .foregroundColor(.white.opacity(0.45))
                         .lineLimit(1)
                 }
-
-                Spacer().frame(height: 2)
-
-                // 재생 컨트롤
-                HStack(spacing: 18) {
-                    mediaBtn("backward.fill", 13) { media.previousTrack() }
-                    mediaBtn(media.isPlaying ? "pause.fill" : "play.fill", 18, primary: true) { media.playPause() }
-                    mediaBtn("forward.fill", 13) { media.nextTrack() }
-                }
             }
 
-            Spacer()
+            // 컨트롤
+            HStack(spacing: 28) {
+                mediaBtn("backward.fill", 16) { media.previousTrack() }
+                mediaBtn(media.isPlaying ? "pause.fill" : "play.fill", 22, primary: true) { media.playPause() }
+                mediaBtn("forward.fill", 16) { media.nextTrack() }
+            }
         }
-        .sectionCard()
+        .frame(maxHeight: .infinity)
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // MARK: - 🌤📅 날씨 + 캘린더 섹션
+    // MARK: - Page 1: 🌤📅 정보
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    private var infoRow: some View {
-        HStack(spacing: NotchDesign.Spacing.sm + 2) {
+    private var infoPage: some View {
+        VStack(spacing: NotchDesign.Spacing.md) {
             // 날씨 카드
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 4) {
-                    Image(systemName: "location.fill")
-                        .font(.system(size: 8))
-                    Text(weather.locationName)
-                        .font(NotchDesign.Font.captionSecondary)
-                }
-                .foregroundColor(.white.opacity(0.35))
-
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
                     Image(systemName: weather.condition.icon)
                         .symbolRenderingMode(.multicolor)
-                        .font(.system(size: 20))
-                    Text(String(format: "%.0f°", weather.temperature))
-                        .font(.system(size: 22, weight: .light, design: .rounded))
-                }
+                        .font(.system(size: 32))
 
-                Text(weather.conditionDescription)
-                    .font(NotchDesign.Font.captionSecondary)
-                    .foregroundColor(.white.opacity(0.4))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String(format: "%.0f°", weather.temperature))
+                            .font(.system(size: 36, weight: .light, design: .rounded))
+                        Text(weather.conditionDescription)
+                            .font(NotchDesign.Font.caption)
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "humidity.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.cyan.opacity(0.7))
+                            Text("\(weather.humidity)%")
+                                .font(NotchDesign.Font.monoRounded)
+                        }
+                        HStack(spacing: 4) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 8))
+                            Text(weather.locationName)
+                                .font(NotchDesign.Font.captionSecondary)
+                        }
+                        .foregroundColor(.white.opacity(0.35))
+                    }
+                }
             }
             .sectionCard()
 
             // 캘린더 카드
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 10))
+                        .font(.system(size: 12))
                         .foregroundColor(.cyan)
                     Text("오늘 일정")
+                        .font(NotchDesign.Font.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                    Spacer()
+                    Text(todayString)
                         .font(NotchDesign.Font.captionSecondary)
-                        .foregroundColor(.white.opacity(0.35))
+                        .foregroundColor(.white.opacity(0.25))
                 }
 
-                if let event = calendar.upcomingEvent {
-                    Text(event.title)
-                        .font(NotchDesign.Font.caption)
-                        .lineLimit(1)
-                    Text(event.timeString)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.4))
+                if calendar.todayEvents.isEmpty {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.green.opacity(0.6))
+                        Text("오늘 일정 없음")
+                            .font(NotchDesign.Font.body)
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                    .padding(.vertical, 8)
                 } else {
-                    Text("일정 없음")
-                        .font(NotchDesign.Font.body)
-                        .foregroundColor(.white.opacity(0.3))
-                    Text(" ")
-                        .font(NotchDesign.Font.captionSecondary)
+                    ForEach(Array(calendar.todayEvents.prefix(4))) { event in
+                        HStack(spacing: 8) {
+                            Text(event.timeString)
+                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .foregroundColor(event.isOngoing ? .cyan : .white.opacity(0.5))
+                                .frame(width: 40, alignment: .leading)
+
+                            Circle()
+                                .fill(event.isOngoing ? Color.cyan : .white.opacity(0.2))
+                                .frame(width: 5, height: 5)
+
+                            Text(event.title)
+                                .font(NotchDesign.Font.caption)
+                                .lineLimit(1)
+
+                            Spacer()
+
+                            if event.isOngoing {
+                                Text("진행 중")
+                                    .font(.system(size: 8, weight: .medium))
+                                    .foregroundColor(.cyan)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Capsule().fill(Color.cyan.opacity(0.15)))
+                            }
+                        }
+                    }
                 }
             }
             .sectionCard()
+
+            Spacer()
         }
+        .frame(maxHeight: .infinity)
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // MARK: - 💻 시스템 모니터 섹션
+    // MARK: - Page 2: 💻 시스템
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    private var systemSection: some View {
-        HStack(spacing: NotchDesign.Spacing.lg) {
+    private var systemPage: some View {
+        VStack(spacing: NotchDesign.Spacing.md) {
             // CPU
-            statItem(
-                icon: "cpu",
-                label: "CPU",
-                value: String(format: "%.0f%%", system.cpuUsage),
+            systemRow(
+                icon: "cpu", label: "CPU",
+                value: String(format: "%.1f%%", system.cpuUsage),
                 progress: system.cpuUsage / 100,
                 color: system.cpuUsage > 80 ? .red : system.cpuUsage > 50 ? .orange : .green
             )
 
-            thinDivider
-
             // Memory
-            statItem(
-                icon: "memorychip",
-                label: "MEM",
-                value: formatGB(system.memoryUsed),
+            systemRow(
+                icon: "memorychip", label: "메모리",
+                value: "\(formatGB(system.memoryUsed)) / \(formatGB(system.memoryTotal))",
                 progress: system.memoryUsage / 100,
                 color: system.memoryUsage > 80 ? .red : system.memoryUsage > 60 ? .orange : .blue
             )
 
-            thinDivider
-
             // Battery
-            HStack(spacing: 6) {
-                Image(systemName: system.isCharging ? "battery.100.bolt" : "battery.75")
-                    .font(.system(size: 14))
-                    .foregroundColor(system.isCharging ? .green : system.batteryLevel <= 20 ? .red : .white.opacity(0.6))
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("\(system.batteryLevel)%")
-                        .font(NotchDesign.Font.monoRounded)
-                    if !system.batteryTimeRemaining.isEmpty {
-                        Text(system.batteryTimeRemaining)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .stroke(.white.opacity(0.06), lineWidth: 4)
+                        Circle()
+                            .trim(from: 0, to: Double(system.batteryLevel) / 100)
+                            .stroke(
+                                system.batteryLevel <= 20 ? Color.red : .green,
+                                style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                        Image(systemName: system.isCharging ? "bolt.fill" : "battery.100")
+                            .font(.system(size: 12))
+                            .foregroundColor(system.isCharging ? .green : .white.opacity(0.5))
+                    }
+                    .frame(width: 36, height: 36)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("배터리")
+                            .font(NotchDesign.Font.caption)
+                            .foregroundColor(.white.opacity(0.5))
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text("\(system.batteryLevel)")
+                                .font(.system(size: 24, weight: .light, design: .rounded))
+                            Text("%")
+                                .font(NotchDesign.Font.caption)
+                                .foregroundColor(.white.opacity(0.4))
+                        }
+                    }
+
+                    Spacer()
+
+                    if system.isCharging {
+                        Label("충전 중", systemImage: "bolt.fill")
                             .font(NotchDesign.Font.captionSecondary)
-                            .foregroundColor(.white.opacity(0.35))
+                            .foregroundColor(.green)
+                    } else if !system.batteryTimeRemaining.isEmpty {
+                        Text(system.batteryTimeRemaining)
+                            .font(NotchDesign.Font.monoRounded)
+                            .foregroundColor(.white.opacity(0.4))
                     }
                 }
             }
+            .sectionCard()
+
+            Spacer()
         }
-        .sectionCard()
+        .frame(maxHeight: .infinity)
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // MARK: - 🎛 제어판 섹션
+    // MARK: - Page 3: 🎛 제어판
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    private var controlSection: some View {
-        HStack(spacing: 0) {
-            // 볼륨 슬라이더
-            HStack(spacing: 6) {
-                Image(systemName: "speaker.fill")
-                    .font(.system(size: 9))
-                    .foregroundColor(.white.opacity(0.35))
-                miniSlider(value: $volume) { setVolume($0) }
+    private var controlPage: some View {
+        VStack(spacing: NotchDesign.Spacing.md) {
+            // 볼륨
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 6) {
+                    Image(systemName: "speaker.wave.2.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text("볼륨")
+                        .font(NotchDesign.Font.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                    Spacer()
+                    Text("\(Int(volume * 100))%")
+                        .font(NotchDesign.Font.monoRounded)
+                        .foregroundColor(.white.opacity(0.4))
+                }
+                wideSlider(value: $volume) { setVolume($0) }
+            }
+            .sectionCard()
+
+            // 빠른 토글
+            HStack(spacing: NotchDesign.Spacing.md) {
+                controlToggle(
+                    icon: isDarkMode ? "moon.fill" : "sun.max.fill",
+                    label: "다크 모드",
+                    isActive: isDarkMode,
+                    action: toggleDarkMode
+                )
+
+                controlToggle(
+                    icon: "camera.fill",
+                    label: "스크린샷",
+                    isActive: false,
+                    action: takeScreenshot
+                )
+
+                controlToggle(
+                    icon: "gear",
+                    label: "설정",
+                    isActive: false,
+                    action: openSettings
+                )
             }
 
             Spacer()
-
-            // 빠른 토글
-            HStack(spacing: 8) {
-                toggleBtn("moon.fill", "다크", isDarkMode) { toggleDarkMode() }
-                toggleBtn("camera.fill", "캡처", false) { takeScreenshot() }
-                toggleBtn("gear", "설정", false) { openSettings() }
-            }
         }
-        .sectionCard()
+        .frame(maxHeight: .infinity)
     }
 
-    // MARK: - Components
+    // MARK: - Shared Components
 
     private func mediaBtn(_ icon: String, _ size: CGFloat, primary: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: size, weight: primary ? .semibold : .regular))
-                .foregroundColor(.white.opacity(primary ? 0.95 : 0.55))
-                .frame(width: primary ? 36 : 26, height: primary ? 36 : 26)
-                .background(Circle().fill(.white.opacity(primary ? 0.12 : 0)))
+                .foregroundColor(.white.opacity(primary ? 0.95 : 0.5))
+                .frame(width: primary ? 48 : 32, height: primary ? 48 : 32)
+                .background(
+                    Circle().fill(.white.opacity(primary ? 0.12 : 0.04))
+                )
         }
         .buttonStyle(.plain)
     }
 
-    private func statItem(icon: String, label: String, value: String, progress: Double, color: Color) -> some View {
-        HStack(spacing: 8) {
-            // 원형 프로그레스
-            ZStack {
-                Circle()
-                    .stroke(.white.opacity(0.06), lineWidth: 3)
-                Circle()
-                    .trim(from: 0, to: min(progress, 1))
-                    .stroke(color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                Image(systemName: icon)
-                    .font(.system(size: 9))
-                    .foregroundColor(color.opacity(0.8))
-            }
-            .frame(width: 28, height: 28)
+    private func systemRow(icon: String, label: String, value: String, progress: Double, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .stroke(.white.opacity(0.06), lineWidth: 4)
+                    Circle()
+                        .trim(from: 0, to: min(progress, 1))
+                        .stroke(color, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    Image(systemName: icon)
+                        .font(.system(size: 12))
+                        .foregroundColor(color.opacity(0.8))
+                }
+                .frame(width: 36, height: 36)
 
-            VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label)
+                        .font(NotchDesign.Font.caption)
+                        .foregroundColor(.white.opacity(0.5))
+                    Text(value)
+                        .font(NotchDesign.Font.monoRounded)
+                }
+
+                Spacer()
+
+                Text(String(format: "%.0f%%", progress * 100))
+                    .font(.system(size: 18, weight: .light, design: .rounded))
+                    .foregroundColor(color)
+            }
+        }
+        .sectionCard()
+    }
+
+    private func controlToggle(icon: String, label: String, isActive: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(isActive ? .white : .white.opacity(0.5))
+                    .frame(width: 50, height: 50)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(isActive ? Color.accentColor : .white.opacity(0.06))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(.white.opacity(isActive ? 0.1 : 0.04), lineWidth: 0.5)
+                    )
+
                 Text(label)
                     .font(NotchDesign.Font.captionSecondary)
-                    .foregroundColor(.white.opacity(0.35))
-                Text(value)
-                    .font(NotchDesign.Font.monoRounded)
+                    .foregroundColor(.white.opacity(0.4))
             }
         }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .sectionCard()
     }
 
-    private func toggleBtn(_ icon: String, _ label: String, _ active: Bool, action: @escaping () -> Void) -> some View {
-        VStack(spacing: 2) {
-            Button(action: action) {
-                Image(systemName: icon)
-                    .font(.system(size: 10))
-                    .foregroundColor(active ? .white : .white.opacity(0.5))
-                    .frame(width: 30, height: 30)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(active ? Color.accentColor : .white.opacity(0.06))
-                    )
-            }
-            .buttonStyle(.plain)
-            Text(label)
-                .font(.system(size: 8))
-                .foregroundColor(.white.opacity(0.3))
-        }
-    }
-
-    private func miniSlider(value: Binding<Double>, onChange: @escaping (Double) -> Void) -> some View {
+    private func wideSlider(value: Binding<Double>, onChange: @escaping (Double) -> Void) -> some View {
         GeometryReader { geo in
             let w = geo.size.width
             ZStack(alignment: .leading) {
-                Capsule().fill(.white.opacity(0.08)).frame(height: 3)
-                Capsule().fill(Color.accentColor.opacity(0.6))
-                    .frame(width: max(w * value.wrappedValue, 3), height: 3)
-                Circle().fill(.white).frame(width: 10, height: 10)
-                    .shadow(color: .black.opacity(0.4), radius: 1, y: 1)
-                    .offset(x: w * value.wrappedValue - 5)
+                Capsule().fill(.white.opacity(0.06)).frame(height: 6)
+                Capsule().fill(Color.accentColor.opacity(0.7))
+                    .frame(width: max(w * value.wrappedValue, 6), height: 6)
+                Circle().fill(.white).frame(width: 14, height: 14)
+                    .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                    .offset(x: max(w * value.wrappedValue - 7, 0))
             }
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 0).onChanged { g in
@@ -374,17 +578,18 @@ struct NotchPopupView: View {
                 value.wrappedValue = v; onChange(v)
             })
         }
-        .frame(width: 100, height: 16)
-    }
-
-    private var thinDivider: some View {
-        Rectangle()
-            .fill(.white.opacity(0.06))
-            .frame(width: 0.5, height: 28)
+        .frame(height: 20)
     }
 
     private func formatGB(_ bytes: UInt64) -> String {
         String(format: "%.1fG", Double(bytes) / 1_073_741_824)
+    }
+
+    private var todayString: String {
+        let f = DateFormatter()
+        f.dateFormat = "M/d (E)"
+        f.locale = Locale(identifier: "ko_KR")
+        return f.string(from: Date())
     }
 
     // MARK: - Actions
