@@ -35,10 +35,8 @@ struct MediaWidgetView: View {
             
             Spacer()
             
-            // 컨트롤 버튼
-            if mediaManager.isPlaying || !mediaManager.trackTitle.isEmpty {
-                playbackControls
-            }
+            // 컨트롤 버튼 (항상 표시)
+            playbackControls
         }
         .padding(10)
         .background(

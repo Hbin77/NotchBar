@@ -50,20 +50,26 @@ struct NotchPopupView: View {
     // MARK: - Background
     
     private var backgroundView: some View {
-        RoundedRectangle(cornerRadius: viewModel.isExpanded ? 24 : 12)
-            .fill(.ultraThinMaterial)
-            .overlay(
-                RoundedRectangle(cornerRadius: viewModel.isExpanded ? 24 : 12)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.2), .white.opacity(0.05)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
+        Group {
+            if viewModel.isExpanded {
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.2), .white.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
-            )
-            .shadow(color: .black.opacity(0.3), radius: viewModel.isExpanded ? 20 : 10, y: 5)
+                    .shadow(color: .black.opacity(0.3), radius: 20, y: 5)
+            } else {
+                Color.clear
+            }
+        }
     }
     
     // MARK: - Collapsed Content (노치 기본 상태)

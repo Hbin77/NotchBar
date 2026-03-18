@@ -17,7 +17,7 @@ class NotchWindow: NSPanel {
     // MARK: - Properties
 
     var isExpanded: Bool { viewModel.isExpanded }
-    private let notchFrame: NSRect
+    private(set) var notchFrame: NSRect
     private var hostingView: NSHostingView<NotchPopupView>?
     let viewModel = NotchViewModel()
 
@@ -55,7 +55,7 @@ class NotchWindow: NSPanel {
     private func setupContent() {
         let contentView = NotchPopupView(viewModel: viewModel)
         hostingView = NSHostingView(rootView: contentView)
-        hostingView?.frame = self.frame
+        hostingView?.frame = NSRect(origin: .zero, size: self.frame.size)
         self.contentView = hostingView
     }
 
@@ -79,28 +79,43 @@ class NotchWindow: NSPanel {
 
     func expand() {
         guard !isExpanded else { return }
-        viewModel.isExpanded = true
 
         let expandedFrame = NotchDetector.getExpandedFrame()
+
+        // 먼저 상태 변경
+        viewModel.isExpanded = true
+
+        // 윈도우를 앞으로 가져오기
+        self.orderFrontRegardless()
+        self.alphaValue = 1.0
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.25
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-
-            self.animator().setFrame(expandedFrame, display: true)
-            self.animator().alphaValue = 1.0
+            self.animator().setFrame(expandedFrame, display: true, animate: true)
         }
     }
 
     func collapse() {
         guard isExpanded else { return }
+
         viewModel.isExpanded = false
 
-        NSAnimationContext.runAnimationGroup { context in
+        NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.2
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            self.animator().setFrame(self.notchFrame, display: true, animate: true)
+        }, completionHandler: {
+            // 애니메이션 완료 후 윈도우를 다시 앞으로
+            self.orderFrontRegardless()
+        })
+    }
 
-            self.animator().setFrame(notchFrame, display: true)
+    /// 모니터 변경 시 notchFrame 업데이트
+    func updateNotchFrame(_ frame: NSRect) {
+        self.notchFrame = frame
+        if !isExpanded {
+            self.setFrame(frame, display: true)
         }
     }
 

@@ -91,9 +91,16 @@ class HoverManager {
     }
 
     private func handleHoverEnter() {
-        guard !isHovering else { return }
-
         hoverTimer?.invalidate()
+        hoverTimer = nil
+
+        // 이미 열려있으면 (메뉴 토글 등으로) 호버 상태만 동기화
+        if notchWindow?.isExpanded == true {
+            isHovering = true
+            return
+        }
+
+        guard !isHovering else { return }
 
         hoverTimer = Timer.scheduledTimer(withTimeInterval: hoverDelay, repeats: false) { [weak self] _ in
             self?.isHovering = true
@@ -102,13 +109,14 @@ class HoverManager {
     }
 
     private func handleHoverExit() {
-        guard isHovering else {
-            hoverTimer?.invalidate()
-            hoverTimer = nil
+        hoverTimer?.invalidate()
+        hoverTimer = nil
+
+        // 열려있지 않으면 무시
+        guard notchWindow?.isExpanded == true else {
+            isHovering = false
             return
         }
-
-        hoverTimer?.invalidate()
 
         hoverTimer = Timer.scheduledTimer(withTimeInterval: unhoverDelay, repeats: false) { [weak self] _ in
             self?.isHovering = false

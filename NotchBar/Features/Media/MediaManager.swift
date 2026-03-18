@@ -57,15 +57,62 @@ class MediaManager: ObservableObject {
     // MARK: - Playback Control
     
     func playPause() {
-        sendMediaKey(.playPause)
+        Task.detached { [weak self] in
+            // Spotify가 실행 중이면 Spotify 제어
+            let spotifyCheck = MediaManager.runAppleScript("""
+                tell application "System Events" to return exists process "Spotify"
+            """)
+            let musicCheck = MediaManager.runAppleScript("""
+                tell application "System Events" to return exists process "Music"
+            """)
+
+            if spotifyCheck == "true" {
+                _ = MediaManager.runAppleScript("tell application \"Spotify\" to playpause")
+            } else if musicCheck == "true" {
+                _ = MediaManager.runAppleScript("tell application \"Music\" to playpause")
+            } else {
+                // 아무것도 실행 중이 아니면 Apple Music 시작
+                _ = MediaManager.runAppleScript("""
+                    tell application "Music"
+                        activate
+                        play
+                    end tell
+                """)
+            }
+
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run { self?.updateNowPlaying() }
+        }
     }
-    
+
     func nextTrack() {
-        sendMediaKey(.next)
+        Task.detached { [weak self] in
+            let spotifyCheck = MediaManager.runAppleScript("""
+                tell application "System Events" to return exists process "Spotify"
+            """)
+            if spotifyCheck == "true" {
+                _ = MediaManager.runAppleScript("tell application \"Spotify\" to next track")
+            } else {
+                _ = MediaManager.runAppleScript("tell application \"Music\" to next track")
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run { self?.updateNowPlaying() }
+        }
     }
-    
+
     func previousTrack() {
-        sendMediaKey(.previous)
+        Task.detached { [weak self] in
+            let spotifyCheck = MediaManager.runAppleScript("""
+                tell application "System Events" to return exists process "Spotify"
+            """)
+            if spotifyCheck == "true" {
+                _ = MediaManager.runAppleScript("tell application \"Spotify\" to previous track")
+            } else {
+                _ = MediaManager.runAppleScript("tell application \"Music\" to back track")
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run { self?.updateNowPlaying() }
+        }
     }
     
     // MARK: - Private Methods
@@ -76,47 +123,55 @@ class MediaManager: ObservableObject {
         updateViaAppleScript()
     }
     
+    /// 현재 트랙 ID (아트워크 중복 로드 방지)
+    private var currentTrackId = ""
+
     private func updateViaAppleScript() {
-        // Music.app (Apple Music) 체크
         let musicScript = """
         tell application "System Events"
             if exists process "Music" then
                 tell application "Music"
-                    if player state is playing then
+                    if player state is playing or player state is paused then
                         set trackName to name of current track
                         set trackArtist to artist of current track
-                        return trackName & "|" & trackArtist & "|playing"
-                    else if player state is paused then
-                        set trackName to name of current track
-                        set trackArtist to artist of current track
-                        return trackName & "|" & trackArtist & "|paused"
+                        set trackAlbum to album of current track
+                        set trackId to database ID of current track as text
+                        if player state is playing then
+                            set pState to "playing"
+                        else
+                            set pState to "paused"
+                        end if
+                        return trackName & "|" & trackArtist & "|" & pState & "|" & trackAlbum & "|" & trackId & "|music"
                     end if
                 end tell
             end if
         end tell
         return ""
         """
-        
-        // Spotify 체크
+
         let spotifyScript = """
         tell application "System Events"
             if exists process "Spotify" then
                 tell application "Spotify"
-                    if player state is playing then
+                    if player state is playing or player state is paused then
                         set trackName to name of current track
                         set trackArtist to artist of current track
-                        return trackName & "|" & trackArtist & "|playing"
-                    else if player state is paused then
-                        set trackName to name of current track
-                        set trackArtist to artist of current track
-                        return trackName & "|" & trackArtist & "|paused"
+                        set trackAlbum to album of current track
+                        set trackId to id of current track
+                        set artUrl to artwork url of current track
+                        if player state is playing then
+                            set pState to "playing"
+                        else
+                            set pState to "paused"
+                        end if
+                        return trackName & "|" & trackArtist & "|" & pState & "|" & trackAlbum & "|" & trackId & "|spotify|" & artUrl
                     end if
                 end tell
             end if
         end tell
         return ""
         """
-        
+
         Task.detached { [weak self] in
             defer { Task { @MainActor in self?.isUpdating = false } }
 
@@ -132,11 +187,11 @@ class MediaManager: ObservableObject {
                 return
             }
 
-            // 재생 중인 미디어 없음
             await MainActor.run {
                 self?.isPlaying = false
                 self?.trackTitle = ""
                 self?.artistName = ""
+                self?.albumArtwork = nil
             }
         }
     }
@@ -157,60 +212,75 @@ class MediaManager: ObservableObject {
     }
     
     private func parseMediaInfo(_ info: String) {
-        let components = info.split(separator: "|").map(String.init)
+        let components = info.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
 
         guard components.count >= 3 else { return }
 
-        trackTitle = components[0]
-        artistName = components[1]
-        isPlaying = components[2] == "playing"
-    }
-    
-    private func sendMediaKey(_ key: MediaKey) {
-        guard AXIsProcessTrusted() else {
-            Self.logger.warning("Accessibility permission required for media key control")
-            return
-        }
+        let newTitle = components[0]
+        let newArtist = components[1]
+        let newIsPlaying = components[2] == "playing"
+        let trackId = components.count > 4 ? components[4] : ""
+        let source = components.count > 5 ? components[5] : ""
+        let artUrl = components.count > 6 ? components[6] : ""
 
-        let keyCode: Int32
-        switch key {
-        case .playPause: keyCode = 16  // NX_KEYTYPE_PLAY
-        case .next: keyCode = 17       // NX_KEYTYPE_NEXT
-        case .previous: keyCode = 18   // NX_KEYTYPE_PREVIOUS
+        trackTitle = newTitle
+        artistName = newArtist
+        isPlaying = newIsPlaying
+
+        // 트랙이 바뀌었을 때만 아트워크 로드
+        if trackId != currentTrackId {
+            currentTrackId = trackId
+            loadArtwork(source: source, artworkUrl: artUrl)
         }
-        
-        // Key Down
-        let keyDown = NSEvent.otherEvent(
-            with: .systemDefined,
-            location: .zero,
-            modifierFlags: NSEvent.ModifierFlags(rawValue: 0xa00),
-            timestamp: 0,
-            windowNumber: 0,
-            context: nil,
-            subtype: 8,
-            data1: Int((keyCode << 16) | (0xa << 8)),
-            data2: -1
-        )
-        keyDown?.cgEvent?.post(tap: .cghidEventTap)
-        
-        // Key Up
-        let keyUp = NSEvent.otherEvent(
-            with: .systemDefined,
-            location: .zero,
-            modifierFlags: NSEvent.ModifierFlags(rawValue: 0xb00),
-            timestamp: 0,
-            windowNumber: 0,
-            context: nil,
-            subtype: 8,
-            data1: Int((keyCode << 16) | (0xb << 8)),
-            data2: -1
-        )
-        keyUp?.cgEvent?.post(tap: .cghidEventTap)
+    }
+
+    private func loadArtwork(source: String, artworkUrl: String) {
+        if source == "spotify" && !artworkUrl.isEmpty {
+            // Spotify: URL에서 이미지 다운로드
+            Task.detached { [weak self] in
+                guard let url = URL(string: artworkUrl),
+                      let data = try? Data(contentsOf: url),
+                      let image = NSImage(data: data) else { return }
+                await MainActor.run { self?.albumArtwork = image }
+            }
+        } else if source == "music" {
+            // Apple Music: AppleScript로 아트워크 데이터 추출
+            Task.detached { [weak self] in
+                let artScript = """
+                tell application "Music"
+                    try
+                        set artData to raw data of artwork 1 of current track
+                        return artData
+                    end try
+                end tell
+                return ""
+                """
+
+                // AppleScript로 아트워크를 임시 파일로 저장
+                let saveScript = """
+                tell application "Music"
+                    try
+                        set artData to data of artwork 1 of current track
+                        set tmpPath to (POSIX path of (path to temporary items)) & "notchbar_art.jpg"
+                        set fileRef to open for access tmpPath with write permission
+                        set eof fileRef to 0
+                        write artData to fileRef
+                        close access fileRef
+                        return tmpPath
+                    on error
+                        return ""
+                    end try
+                end tell
+                """
+
+                if let path = MediaManager.runAppleScript(saveScript), !path.isEmpty {
+                    let image = NSImage(contentsOfFile: path)
+                    await MainActor.run { self?.albumArtwork = image }
+                } else {
+                    await MainActor.run { self?.albumArtwork = nil }
+                }
+            }
+        }
     }
     
-    enum MediaKey {
-        case playPause
-        case next
-        case previous
-    }
 }
