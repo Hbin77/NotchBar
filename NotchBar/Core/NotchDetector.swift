@@ -10,9 +10,9 @@ import AppKit
 struct NotchDetector {
 
     static let notchHeight: CGFloat = 38
-    static let stemHeight: CGFloat = 20     // 노치 아래 보이는 stem 높이
-    static let expandedPanelHeight: CGFloat = 400
-    static let expandedWidth: CGFloat = 620
+    static let stemHeight: CGFloat = 16
+    static let expandedPanelHeight: CGFloat = 360
+    static let expandedWidth: CGFloat = 480
 
     // MARK: - Screen Detection
 
@@ -58,7 +58,7 @@ struct NotchDetector {
         return NSRect(x: x, y: y, width: width, height: menuBarH)
     }
 
-    // MARK: - Expanded Frame (메뉴바 아래, stem 포함)
+    // MARK: - Expanded Frame
 
     static func getExpandedFrame() -> NSRect {
         guard let screen = targetScreen() else { return .zero }
