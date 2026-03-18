@@ -543,16 +543,14 @@ struct NotchPopupView: View {
     }
 
     private func setBrightness(_ v: Double) {
-        let clamped = min(max(v, 0), 1)
-        AppleScriptRunner.run("tell application \"System Events\" to tell appearance preferences to set dark mode to false")
-        // CoreGraphics 밝기 설정
-        let task = Process()
-        task.launchPath = "/usr/bin/osascript"
-        task.arguments = ["-e", "do shell script \"brightness \(String(format: "%.2f", clamped))\" "]
-        // 폴백: AppleScript
-        AppleScriptRunner.run("""
-        do shell script "osascript -e 'tell application \\"System Events\\"' -e 'key code 145' -e 'end tell'"
-        """)
+        let clamped = min(max(Float(v), 0), 1)
+        // CoreGraphics private API로 밝기 직접 설정
+        typealias SetBrightnessFunc = @convention(c) (UInt32, Float) -> Int32
+        if let handle = dlopen("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", RTLD_LAZY),
+           let sym = dlsym(handle, "CGDisplaySetBrightness") {
+            let setBrightness = unsafeBitCast(sym, to: SetBrightnessFunc.self)
+            _ = setBrightness(CGMainDisplayID(), clamped)
+        }
     }
 
     private func openWiFiSettings() {
