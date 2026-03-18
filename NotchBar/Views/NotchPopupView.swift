@@ -519,7 +519,19 @@ struct NotchPopupView: View {
         if let r = AppleScriptRunner.run("output volume of (get volume settings)"), let v = Int(r) {
             volume = Double(v) / 100
         }
-        // 밝기는 시스템에서 직접 가져오기 어려우므로 0.5 기본값 유지
+        // IOKit에서 현재 밝기 읽기
+        var iterator: io_iterator_t = 0
+        if IOServiceGetMatchingServices(kIOMainPortDefault,
+            IOServiceMatching("IODisplayConnect"), &iterator) == kIOReturnSuccess {
+            let service = IOIteratorNext(iterator)
+            if service != 0 {
+                var br: Float = 0.5
+                IODisplayGetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, &br)
+                brightness = Double(br)
+                IOObjectRelease(service)
+            }
+            IOObjectRelease(iterator)
+        }
     }
 
     private func setVolume(_ v: Double) {
@@ -543,13 +555,19 @@ struct NotchPopupView: View {
     }
 
     private func setBrightness(_ v: Double) {
-        let clamped = min(max(Float(v), 0), 1)
-        // CoreGraphics private API로 밝기 직접 설정
-        typealias SetBrightnessFunc = @convention(c) (UInt32, Float) -> Int32
-        if let handle = dlopen("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", RTLD_LAZY),
-           let sym = dlsym(handle, "CGDisplaySetBrightness") {
-            let setBrightness = unsafeBitCast(sym, to: SetBrightnessFunc.self)
-            _ = setBrightness(CGMainDisplayID(), clamped)
+        let clamped = min(max(v, 0), 1)
+        // IOKit을 통한 디스플레이 밝기 설정
+        var iterator: io_iterator_t = 0
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault,
+            IOServiceMatching("IODisplayConnect"), &iterator)
+        guard result == kIOReturnSuccess else { return }
+        defer { IOObjectRelease(iterator) }
+
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            IODisplaySetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, Float(clamped))
+            IOObjectRelease(service)
+            service = IOIteratorNext(iterator)
         }
     }
 
