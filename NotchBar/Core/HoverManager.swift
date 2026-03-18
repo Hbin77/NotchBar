@@ -20,12 +20,12 @@ class HoverManager {
 
     /// 호버 지연 시간 (초) — @AppStorage 연동
     private var hoverDelay: TimeInterval {
-        UserDefaults.standard.double(forKey: "hoverDelay").clamped(to: 0.1...3.0, default: 0.3)
+        UserDefaults.standard.double(forKey: "hoverDelay").clamped(to: 0.1...3.0, default: 0.2)
     }
 
     /// 호버 해제 지연 시간 (초)
     private var unhoverDelay: TimeInterval {
-        UserDefaults.standard.double(forKey: "unhoverDelay").clamped(to: 0.1...3.0, default: 0.5)
+        UserDefaults.standard.double(forKey: "unhoverDelay").clamped(to: 0.1...3.0, default: 0.7)
     }
 
     // MARK: - Initialization

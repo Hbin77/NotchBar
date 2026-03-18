@@ -43,7 +43,7 @@ class NotchWindow: NSPanel {
         self.level = .statusBar + 1
         self.backgroundColor = .clear
         self.isOpaque = false
-        self.hasShadow = true
+        self.hasShadow = false  // SwiftUI에서 그림자 제어
         self.ignoresMouseEvents = false
         self.acceptsMouseMovedEvents = true
         self.isMovableByWindowBackground = false
@@ -90,8 +90,8 @@ class NotchWindow: NSPanel {
         self.alphaValue = 1.0
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            context.duration = 0.3
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             self.animator().setFrame(expandedFrame, display: true, animate: true)
         }
     }

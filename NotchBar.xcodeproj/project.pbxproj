@@ -24,6 +24,7 @@
 		E5D1F494A5DFFA40B3DBE620 /* NotchPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CC9AA4BF786B5B31016F2C /* NotchPopupView.swift */; };
 		F47DB67383E8D279D1AB0808 /* HoverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C59C2EE1766BED18FE0966 /* HoverManager.swift */; };
 		F5BC897BDD90BD6C839FAEC0 /* CalendarWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA3509FBB43B727E91280D60 /* CalendarWidgetView.swift */; };
+		FC137068E7709928D9FCC80F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		75DBD519135673015ECA7E78 /* QuickSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSettingsView.swift; sourceTree = "<group>"; };
 		93F99BFA36981D60AB17168B /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		947F854AC161967710352113 /* NotchBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		BA3509FBB43B727E91280D60 /* CalendarWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidgetView.swift; sourceTree = "<group>"; };
 		C207FDE0049A28D09F53C23A /* MediaManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaManager.swift; sourceTree = "<group>"; };
 		D7A06F228E5C2EA7615DE1D3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -53,6 +55,7 @@
 		02E1848A0005BED04E0C4422 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */,
 				E9C59C2EE1766BED18FE0966 /* HoverManager.swift */,
 				F59967811457BFF4D2FDC90A /* NotchDetector.swift */,
 				3FFCB4678BBCC3A0F9CBAB3B /* NotchWindow.swift */,
@@ -237,6 +240,7 @@
 				B842A65E60AAD66B88FB6A9D /* AppDelegate.swift in Sources */,
 				284A656482BF9ACC0CDEB8A9 /* CalendarManager.swift in Sources */,
 				F5BC897BDD90BD6C839FAEC0 /* CalendarWidgetView.swift in Sources */,
+				FC137068E7709928D9FCC80F /* DesignSystem.swift in Sources */,
 				F47DB67383E8D279D1AB0808 /* HoverManager.swift in Sources */,
 				3800022451C1A0F1E97FD5C8 /* MediaManager.swift in Sources */,
 				35FF63BBBB906F07309413A8 /* MediaWidgetView.swift in Sources */,
