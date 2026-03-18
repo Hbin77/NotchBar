@@ -49,13 +49,6 @@ struct QuickSettingsView: View {
                     isActive: false,
                     action: toggleDoNotDisturb
                 )
-
-                QuickToggle(
-                    icon: "airplayaudio",
-                    label: "AirDrop",
-                    isActive: false,
-                    action: toggleAirDrop
-                )
             }
         }
         .onAppear { loadCurrentSettings() }
@@ -65,57 +58,38 @@ struct QuickSettingsView: View {
 
     private func loadCurrentSettings() {
         isDarkMode = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        if let vol = getSystemVolume() { volume = vol }
+        if let result = AppleScriptRunner.run("output volume of (get volume settings)"),
+           let vol = Int(result) {
+            volume = Double(vol) / 100.0
+        }
     }
 
     private func setBrightness(_ value: Double) {
-        let script = "tell application \"System Events\" to set brightness of first display to \(value)"
-        runAppleScript(script)
+        AppleScriptRunner.run("tell application \"System Events\" to set brightness of first display to \(value)")
     }
 
     private func setVolume(_ value: Double) {
-        let script = "set volume output volume \(Int(value * 100))"
-        runAppleScript(script)
-    }
-
-    private func getSystemVolume() -> Double? {
-        guard let result = runAppleScript("output volume of (get volume settings)") else { return nil }
-        if let vol = Int(result) { return Double(vol) / 100.0 }
-        return nil
+        let clamped = min(max(Int(value * 100), 0), 100)
+        AppleScriptRunner.run("set volume output volume \(clamped)")
     }
 
     private func toggleDarkMode() {
         isDarkMode.toggle()
-        let script = """
+        AppleScriptRunner.run("""
         tell application "System Events"
             tell appearance preferences
                 set dark mode to \(isDarkMode ? "true" : "false")
             end tell
         end tell
-        """
-        runAppleScript(script)
+        """)
     }
 
     private func toggleDoNotDisturb() {
-        let script = """
+        AppleScriptRunner.run("""
         tell application "System Events"
             keystroke "D" using {command down, shift down, control down}
         end tell
-        """
-        runAppleScript(script)
-    }
-
-    private func toggleAirDrop() {
-        NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
-        runAppleScript("tell application \"Finder\" to activate")
-    }
-
-    @discardableResult
-    private func runAppleScript(_ source: String) -> String? {
-        var error: NSDictionary?
-        guard let script = NSAppleScript(source: source) else { return nil }
-        let output = script.executeAndReturnError(&error)
-        return output.stringValue
+        """)
     }
 }
 
@@ -157,17 +131,14 @@ private struct CustomSlider: View {
             let thumbX = width * value
 
             ZStack(alignment: .leading) {
-                // 트랙 배경
                 Capsule()
                     .fill(Color.white.opacity(0.08))
                     .frame(height: 4)
 
-                // 채워진 부분
                 Capsule()
                     .fill(Color.accentColor.opacity(0.8))
                     .frame(width: max(thumbX, 4), height: 4)
 
-                // 썸
                 Circle()
                     .fill(Color.white)
                     .frame(width: isDragging ? 14 : 12, height: isDragging ? 14 : 12)

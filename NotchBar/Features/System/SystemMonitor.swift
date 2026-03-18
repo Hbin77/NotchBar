@@ -31,6 +31,7 @@ class SystemMonitor: ObservableObject {
     private var timer: Timer?
     private var previousTotalTicks: Int64 = 0
     private var previousUsedTicks: Int64 = 0
+    private let hostPort = mach_host_self()  // 캐시하여 포트 누수 방지
 
     // MARK: - Initialization
 
@@ -72,7 +73,7 @@ class SystemMonitor: ObservableObject {
         var numCPUInfo: mach_msg_type_number_t = 0
 
         let err = host_processor_info(
-            mach_host_self(),
+            hostPort,
             PROCESSOR_CPU_LOAD_INFO,
             &numCPUs,
             &cpuInfo,
@@ -95,7 +96,6 @@ class SystemMonitor: ObservableObject {
         let totalTicks = totalUser + totalSystem + totalIdle
         let usedTicks = totalUser + totalSystem
 
-        // Delta calculation for current CPU usage
         let deltaTotalTicks = totalTicks - previousTotalTicks
         let deltaUsedTicks = usedTicks - previousUsedTicks
 
@@ -106,7 +106,6 @@ class SystemMonitor: ObservableObject {
         previousTotalTicks = totalTicks
         previousUsedTicks = usedTicks
 
-        // 메모리 해제
         let cpuInfoSize = vm_size_t(numCPUInfo) * vm_size_t(MemoryLayout<integer_t>.stride)
         vm_deallocate(mach_task_self_, vm_address_t(bitPattern: cpuInfo), cpuInfoSize)
     }
@@ -119,7 +118,7 @@ class SystemMonitor: ObservableObject {
 
         let result = withUnsafeMutablePointer(to: &stats) {
             $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                host_statistics64(mach_host_self(), HOST_VM_INFO64, $0, &count)
+                host_statistics64(hostPort, HOST_VM_INFO64, $0, &count)
             }
         }
 

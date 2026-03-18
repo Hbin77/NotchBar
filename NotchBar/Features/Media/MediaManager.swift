@@ -12,13 +12,13 @@ import os.log
 
 @MainActor
 class MediaManager: ObservableObject {
-    
+
     // MARK: - Singleton
-    
+
     static let shared = MediaManager()
-    
+
     // MARK: - Published Properties
-    
+
     @Published var isPlaying = false
     @Published var trackTitle = ""
     @Published var artistName = ""
@@ -26,19 +26,20 @@ class MediaManager: ObservableObject {
     @Published var playbackProgress: Double = 0.0
     @Published var duration: TimeInterval = 0
     @Published var currentTime: TimeInterval = 0
-    
+
     // MARK: - Private Properties
-    
+
     private var timer: Timer?
     private var isUpdating = false
     private var cancellables = Set<AnyCancellable>()
-    
+    private var currentTrackId = ""
+
     // MARK: - Initialization
-    
+
     private init() {}
-    
+
     // MARK: - Public Methods
-    
+
     func startMonitoring() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -53,26 +54,24 @@ class MediaManager: ObservableObject {
         timer?.invalidate()
         timer = nil
     }
-    
+
     // MARK: - Playback Control
-    
+
     func playPause() {
         Task.detached { [weak self] in
-            // Spotify가 실행 중이면 Spotify 제어
-            let spotifyCheck = MediaManager.runAppleScript("""
+            let spotifyCheck = AppleScriptRunner.run("""
                 tell application "System Events" to return exists process "Spotify"
             """)
-            let musicCheck = MediaManager.runAppleScript("""
+            let musicCheck = AppleScriptRunner.run("""
                 tell application "System Events" to return exists process "Music"
             """)
 
             if spotifyCheck == "true" {
-                _ = MediaManager.runAppleScript("tell application \"Spotify\" to playpause")
+                AppleScriptRunner.run("tell application \"Spotify\" to playpause")
             } else if musicCheck == "true" {
-                _ = MediaManager.runAppleScript("tell application \"Music\" to playpause")
+                AppleScriptRunner.run("tell application \"Music\" to playpause")
             } else {
-                // 아무것도 실행 중이 아니면 Apple Music 시작
-                _ = MediaManager.runAppleScript("""
+                AppleScriptRunner.run("""
                     tell application "Music"
                         activate
                         play
@@ -87,13 +86,13 @@ class MediaManager: ObservableObject {
 
     func nextTrack() {
         Task.detached { [weak self] in
-            let spotifyCheck = MediaManager.runAppleScript("""
+            let spotifyCheck = AppleScriptRunner.run("""
                 tell application "System Events" to return exists process "Spotify"
             """)
             if spotifyCheck == "true" {
-                _ = MediaManager.runAppleScript("tell application \"Spotify\" to next track")
+                AppleScriptRunner.run("tell application \"Spotify\" to next track")
             } else {
-                _ = MediaManager.runAppleScript("tell application \"Music\" to next track")
+                AppleScriptRunner.run("tell application \"Music\" to next track")
             }
             try? await Task.sleep(nanoseconds: 500_000_000)
             await MainActor.run { self?.updateNowPlaying() }
@@ -102,29 +101,26 @@ class MediaManager: ObservableObject {
 
     func previousTrack() {
         Task.detached { [weak self] in
-            let spotifyCheck = MediaManager.runAppleScript("""
+            let spotifyCheck = AppleScriptRunner.run("""
                 tell application "System Events" to return exists process "Spotify"
             """)
             if spotifyCheck == "true" {
-                _ = MediaManager.runAppleScript("tell application \"Spotify\" to previous track")
+                AppleScriptRunner.run("tell application \"Spotify\" to previous track")
             } else {
-                _ = MediaManager.runAppleScript("tell application \"Music\" to back track")
+                AppleScriptRunner.run("tell application \"Music\" to back track")
             }
             try? await Task.sleep(nanoseconds: 500_000_000)
             await MainActor.run { self?.updateNowPlaying() }
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func updateNowPlaying() {
         guard !isUpdating else { return }
         isUpdating = true
         updateViaAppleScript()
     }
-    
-    /// 현재 트랙 ID (아트워크 중복 로드 방지)
-    private var currentTrackId = ""
 
     private func updateViaAppleScript() {
         let musicScript = """
@@ -175,14 +171,12 @@ class MediaManager: ObservableObject {
         Task.detached { [weak self] in
             defer { Task { @MainActor in self?.isUpdating = false } }
 
-            // Music 먼저 시도
-            if let result = MediaManager.runAppleScript(musicScript), !result.isEmpty {
+            if let result = AppleScriptRunner.run(musicScript), !result.isEmpty {
                 await self?.parseMediaInfo(result)
                 return
             }
 
-            // Spotify 시도
-            if let result = MediaManager.runAppleScript(spotifyScript), !result.isEmpty {
+            if let result = AppleScriptRunner.run(spotifyScript), !result.isEmpty {
                 await self?.parseMediaInfo(result)
                 return
             }
@@ -196,21 +190,6 @@ class MediaManager: ObservableObject {
         }
     }
 
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "NotchBar", category: "Media")
-
-    nonisolated private static func runAppleScript(_ source: String) -> String? {
-        var error: NSDictionary?
-        guard let script = NSAppleScript(source: source) else { return nil }
-        let output = script.executeAndReturnError(&error)
-
-        if let error = error {
-            logger.debug("AppleScript error: \(error)")
-            return nil
-        }
-
-        return output.stringValue
-    }
-    
     private func parseMediaInfo(_ info: String) {
         let components = info.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
 
@@ -227,7 +206,6 @@ class MediaManager: ObservableObject {
         artistName = newArtist
         isPlaying = newIsPlaying
 
-        // 트랙이 바뀌었을 때만 아트워크 로드
         if trackId != currentTrackId {
             currentTrackId = trackId
             loadArtwork(source: source, artworkUrl: artUrl)
@@ -236,27 +214,20 @@ class MediaManager: ObservableObject {
 
     private func loadArtwork(source: String, artworkUrl: String) {
         if source == "spotify" && !artworkUrl.isEmpty {
-            // Spotify: URL에서 이미지 다운로드
+            // Spotify: URLSession async로 이미지 다운로드
             Task.detached { [weak self] in
-                guard let url = URL(string: artworkUrl),
-                      let data = try? Data(contentsOf: url),
-                      let image = NSImage(data: data) else { return }
-                await MainActor.run { self?.albumArtwork = image }
+                guard let url = URL(string: artworkUrl) else { return }
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    guard let image = NSImage(data: data) else { return }
+                    await MainActor.run { self?.albumArtwork = image }
+                } catch {
+                    await MainActor.run { self?.albumArtwork = nil }
+                }
             }
         } else if source == "music" {
-            // Apple Music: AppleScript로 아트워크 데이터 추출
+            // Apple Music: AppleScript로 아트워크를 임시 파일로 저장
             Task.detached { [weak self] in
-                let artScript = """
-                tell application "Music"
-                    try
-                        set artData to raw data of artwork 1 of current track
-                        return artData
-                    end try
-                end tell
-                return ""
-                """
-
-                // AppleScript로 아트워크를 임시 파일로 저장
                 let saveScript = """
                 tell application "Music"
                     try
@@ -273,7 +244,7 @@ class MediaManager: ObservableObject {
                 end tell
                 """
 
-                if let path = MediaManager.runAppleScript(saveScript), !path.isEmpty {
+                if let path = AppleScriptRunner.run(saveScript), !path.isEmpty {
                     let image = NSImage(contentsOfFile: path)
                     await MainActor.run { self?.albumArtwork = image }
                 } else {
@@ -282,5 +253,5 @@ class MediaManager: ObservableObject {
             }
         }
     }
-    
+
 }

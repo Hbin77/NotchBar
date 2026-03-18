@@ -25,6 +25,8 @@
 		F47DB67383E8D279D1AB0808 /* HoverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C59C2EE1766BED18FE0966 /* HoverManager.swift */; };
 		F5BC897BDD90BD6C839FAEC0 /* CalendarWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA3509FBB43B727E91280D60 /* CalendarWidgetView.swift */; };
 		FC137068E7709928D9FCC80F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* NotchConnectedShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* NotchConnectedShape.swift */; };
+		1A2B3C4D5E6F0718293A4B5E /* AppleScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F07182A3A4B5F /* AppleScriptRunner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,14 +51,18 @@
 		EC2A6C8AC61D8CDD4E108658 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F59967811457BFF4D2FDC90A /* NotchDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchDetector.swift; sourceTree = "<group>"; };
 		FFA1836F5F12115A2611D137 /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5D /* NotchConnectedShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchConnectedShape.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F07182A3A4B5F /* AppleScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptRunner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		02E1848A0005BED04E0C4422 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				1A2B3C4D5E6F07182A3A4B5F /* AppleScriptRunner.swift */,
 				AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */,
 				E9C59C2EE1766BED18FE0966 /* HoverManager.swift */,
+				A1B2C3D4E5F60718293A4B5D /* NotchConnectedShape.swift */,
 				F59967811457BFF4D2FDC90A /* NotchDetector.swift */,
 				3FFCB4678BBCC3A0F9CBAB3B /* NotchWindow.swift */,
 			);
@@ -242,6 +248,8 @@
 				F5BC897BDD90BD6C839FAEC0 /* CalendarWidgetView.swift in Sources */,
 				FC137068E7709928D9FCC80F /* DesignSystem.swift in Sources */,
 				F47DB67383E8D279D1AB0808 /* HoverManager.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* NotchConnectedShape.swift in Sources */,
+				1A2B3C4D5E6F0718293A4B5E /* AppleScriptRunner.swift in Sources */,
 				3800022451C1A0F1E97FD5C8 /* MediaManager.swift in Sources */,
 				35FF63BBBB906F07309413A8 /* MediaWidgetView.swift in Sources */,
 				439A1EC04A534F5D3E71F314 /* NotchBarApp.swift in Sources */,
