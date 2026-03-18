@@ -55,6 +55,7 @@ class NotchWindow: NSPanel {
     private func setupContent() {
         let contentView = NotchPopupView(viewModel: viewModel)
         hostingView = NSHostingView(rootView: contentView)
+        hostingView?.autoresizingMask = [.width, .height]
         hostingView?.frame = NSRect(origin: .zero, size: self.frame.size)
         self.contentView = hostingView
     }
