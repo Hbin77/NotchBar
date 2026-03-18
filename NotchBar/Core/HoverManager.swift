@@ -25,7 +25,7 @@ class HoverManager {
 
     /// 호버 해제 지연 시간 (초)
     private var unhoverDelay: TimeInterval {
-        UserDefaults.standard.double(forKey: "unhoverDelay").clamped(to: 0.1...3.0, default: 0.7)
+        UserDefaults.standard.double(forKey: "unhoverDelay").clamped(to: 0.1...3.0, default: 0.3)
     }
 
     // MARK: - Initialization
