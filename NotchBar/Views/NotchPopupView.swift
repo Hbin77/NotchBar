@@ -521,19 +521,7 @@ struct NotchPopupView: View {
         if let r = AppleScriptRunner.run("output volume of (get volume settings)"), let v = Int(r) {
             volume = Double(v) / 100
         }
-        // IOKit에서 현재 밝기 읽기
-        var iterator: io_iterator_t = 0
-        if IOServiceGetMatchingServices(kIOMainPortDefault,
-            IOServiceMatching("IODisplayConnect"), &iterator) == kIOReturnSuccess {
-            let service = IOIteratorNext(iterator)
-            if service != 0 {
-                var br: Float = 0.5
-                IODisplayGetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, &br)
-                brightness = Double(br)
-                IOObjectRelease(service)
-            }
-            IOObjectRelease(iterator)
-        }
+        brightness = Double(BrightnessHelper.get())
         // Wi-Fi 상태
         let wifiResult = Process.run("/usr/sbin/networksetup", args: ["-getairportpower", "en0"])
         isWiFiOn = wifiResult?.contains("On") ?? false
@@ -564,20 +552,8 @@ struct NotchPopupView: View {
     }
 
     private func setBrightness(_ v: Double) {
-        let clamped = min(max(v, 0), 1)
-        // IOKit을 통한 디스플레이 밝기 설정
-        var iterator: io_iterator_t = 0
-        let result = IOServiceGetMatchingServices(kIOMainPortDefault,
-            IOServiceMatching("IODisplayConnect"), &iterator)
-        guard result == kIOReturnSuccess else { return }
-        defer { IOObjectRelease(iterator) }
-
-        var service = IOIteratorNext(iterator)
-        while service != 0 {
-            IODisplaySetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, Float(clamped))
-            IOObjectRelease(service)
-            service = IOIteratorNext(iterator)
-        }
+        let clamped = min(max(Float(v), 0), 1)
+        BrightnessHelper.set(clamped)
     }
 
     private func dismissAndRun(_ action: @escaping () -> Void) {
