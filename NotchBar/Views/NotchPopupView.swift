@@ -21,6 +21,8 @@ struct NotchPopupView: View {
     @State private var volume: Double = 0.5
     @State private var isDarkMode = false
     @State private var brightness: Double = 0.5
+    @State private var isWiFiOn = false
+    @State private var isBluetoothOn = false
     @State private var contentVisible = false
 
     private let pageCount = 4
@@ -398,8 +400,8 @@ struct NotchPopupView: View {
             HStack(spacing: 6) {
                 ctrlToggle(icon: isDarkMode ? "moon.fill" : "sun.max.fill", label: "다크 모드", active: isDarkMode) { toggleDarkMode() }
                 ctrlToggle(icon: "camera.fill", label: "스크린샷", active: false) { takeScreenshot() }
-                ctrlToggle(icon: "wifi", label: "Wi-Fi", active: false) { openWiFiSettings() }
-                ctrlToggle(icon: "bluetooth", label: "블루투스", active: false) { openBluetoothSettings() }
+                ctrlToggle(icon: isWiFiOn ? "wifi" : "wifi.slash", label: "Wi-Fi", active: isWiFiOn) { openWiFiSettings() }
+                ctrlToggle(icon: "bluetooth", label: "블루투스", active: isBluetoothOn) { openBluetoothSettings() }
                 ctrlToggle(icon: "gearshape.fill", label: "설정", active: false) { openSettings() }
             }
 
@@ -532,6 +534,14 @@ struct NotchPopupView: View {
             }
             IOObjectRelease(iterator)
         }
+        // Wi-Fi 상태
+        let wifiResult = Process.run("/usr/sbin/networksetup", args: ["-getairportpower", "en0"])
+        isWiFiOn = wifiResult?.contains("On") ?? false
+        // 블루투스 상태
+        let btResult = AppleScriptRunner.run("""
+        do shell script "defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState 2>/dev/null || echo 1"
+        """)
+        isBluetoothOn = btResult != "0"
     }
 
     private func setVolume(_ v: Double) {
@@ -545,8 +555,7 @@ struct NotchPopupView: View {
     }
 
     private func takeScreenshot() {
-        // 패널을 잠시 숨기고 스크린샷 실행
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        dismissAndRun {
             let task = Process()
             task.launchPath = "/usr/sbin/screencapture"
             task.arguments = ["-i", "-s"]
@@ -571,20 +580,48 @@ struct NotchPopupView: View {
         }
     }
 
+    private func dismissAndRun(_ action: @escaping () -> Void) {
+        viewModel.isExpanded = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { action() }
+    }
+
     private func openWiFiSettings() {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.network")!)
+        dismissAndRun {
+            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.wifi-settings-extension")!)
+        }
     }
 
     private func openBluetoothSettings() {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.BluetoothSettings")!)
+        dismissAndRun {
+            NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.BluetoothSettings")!)
+        }
     }
 
     private func openSettings() {
-        NSApp.activate(ignoringOtherApps: true)
-        if NSApp.responds(to: Selector(("showSettingsWindow:"))) {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        } else {
-            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        dismissAndRun {
+            NSApp.activate(ignoringOtherApps: true)
+            if NSApp.responds(to: Selector(("showSettingsWindow:"))) {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            } else {
+                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+            }
         }
+    }
+}
+
+// MARK: - Process Helper
+
+private extension Process {
+    static func run(_ path: String, args: [String]) -> String? {
+        let task = Process()
+        task.launchPath = path
+        task.arguments = args
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
+        do { try task.run() } catch { return nil }
+        task.waitUntilExit()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
