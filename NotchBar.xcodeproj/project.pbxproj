@@ -1,0 +1,462 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		11C5C7481CA2DE4F1274A775 /* SystemMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA1836F5F12115A2611D137 /* SystemMonitor.swift */; };
+		1DFFB3150F1650D8D2341F2C /* QuickSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75DBD519135673015ECA7E78 /* QuickSettingsView.swift */; };
+		284A656482BF9ACC0CDEB8A9 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93F99BFA36981D60AB17168B /* CalendarManager.swift */; };
+		29AEE85B9A571FFF8B37D770 /* SystemWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA306796585D79B1D9B948F2 /* SystemWidgetView.swift */; };
+		35FF63BBBB906F07309413A8 /* MediaWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C1EAF4A19FBCA156DC931F /* MediaWidgetView.swift */; };
+		3800022451C1A0F1E97FD5C8 /* MediaManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C207FDE0049A28D09F53C23A /* MediaManager.swift */; };
+		42DFA5018D14347527552C47 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2686DA6F19108FA35168B8A7 /* WeatherManager.swift */; };
+		439A1EC04A534F5D3E71F314 /* NotchBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344B90940CB5CEA49AFC0EC3 /* NotchBarApp.swift */; };
+		6B0430CB0B7B5240ADC8FCCC /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 403B9DF446E0624B043841C7 /* SettingsView.swift */; };
+		6ECE60103F801B64644713F0 /* WeatherWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB22372C466EF58301ACC8A /* WeatherWidgetView.swift */; };
+		7023EA767DD4D41BB5284D6C /* NotchWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFCB4678BBCC3A0F9CBAB3B /* NotchWindow.swift */; };
+		82C2B42F73C492254262B4EC /* NotchDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59967811457BFF4D2FDC90A /* NotchDetector.swift */; };
+		B842A65E60AAD66B88FB6A9D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2A6C8AC61D8CDD4E108658 /* AppDelegate.swift */; };
+		BD245084726E9F4A2D1C3057 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC3E4260B4FB0B289B99F1FD /* Assets.xcassets */; };
+		E5D1F494A5DFFA40B3DBE620 /* NotchPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CC9AA4BF786B5B31016F2C /* NotchPopupView.swift */; };
+		F47DB67383E8D279D1AB0808 /* HoverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C59C2EE1766BED18FE0966 /* HoverManager.swift */; };
+		F5BC897BDD90BD6C839FAEC0 /* CalendarWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA3509FBB43B727E91280D60 /* CalendarWidgetView.swift */; };
+		FC137068E7709928D9FCC80F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* NotchConnectedShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* NotchConnectedShape.swift */; };
+		1A2B3C4D5E6F0718293A4B5E /* AppleScriptRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F07182A3A4B5F /* AppleScriptRunner.swift */; };
+		B1C2D3E4F5061728394A5B6C /* BrightnessHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5061728394A5B6D /* BrightnessHelper.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		02CC9AA4BF786B5B31016F2C /* NotchPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchPopupView.swift; sourceTree = "<group>"; };
+		22C1EAF4A19FBCA156DC931F /* MediaWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaWidgetView.swift; sourceTree = "<group>"; };
+		2686DA6F19108FA35168B8A7 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
+		344B90940CB5CEA49AFC0EC3 /* NotchBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchBarApp.swift; sourceTree = "<group>"; };
+		3FFCB4678BBCC3A0F9CBAB3B /* NotchWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchWindow.swift; sourceTree = "<group>"; };
+		403B9DF446E0624B043841C7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		5CB22372C466EF58301ACC8A /* WeatherWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherWidgetView.swift; sourceTree = "<group>"; };
+		6D3408BE3A7B4E066029DB03 /* NotchBar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotchBar.entitlements; sourceTree = "<group>"; };
+		75DBD519135673015ECA7E78 /* QuickSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickSettingsView.swift; sourceTree = "<group>"; };
+		93F99BFA36981D60AB17168B /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
+		947F854AC161967710352113 /* NotchBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		BA3509FBB43B727E91280D60 /* CalendarWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarWidgetView.swift; sourceTree = "<group>"; };
+		C207FDE0049A28D09F53C23A /* MediaManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaManager.swift; sourceTree = "<group>"; };
+		D7A06F228E5C2EA7615DE1D3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		DC3E4260B4FB0B289B99F1FD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E9C59C2EE1766BED18FE0966 /* HoverManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverManager.swift; sourceTree = "<group>"; };
+		EA306796585D79B1D9B948F2 /* SystemWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemWidgetView.swift; sourceTree = "<group>"; };
+		EC2A6C8AC61D8CDD4E108658 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F59967811457BFF4D2FDC90A /* NotchDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchDetector.swift; sourceTree = "<group>"; };
+		FFA1836F5F12115A2611D137 /* SystemMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitor.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5D /* NotchConnectedShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchConnectedShape.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F07182A3A4B5F /* AppleScriptRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptRunner.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5061728394A5B6D /* BrightnessHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrightnessHelper.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		02E1848A0005BED04E0C4422 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				1A2B3C4D5E6F07182A3A4B5F /* AppleScriptRunner.swift */,
+				B1C2D3E4F5061728394A5B6D /* BrightnessHelper.swift */,
+				AB5DF66E14299DFE9AB401B9 /* DesignSystem.swift */,
+				E9C59C2EE1766BED18FE0966 /* HoverManager.swift */,
+				A1B2C3D4E5F60718293A4B5D /* NotchConnectedShape.swift */,
+				F59967811457BFF4D2FDC90A /* NotchDetector.swift */,
+				3FFCB4678BBCC3A0F9CBAB3B /* NotchWindow.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		14DE8C8E9F9DB7858AAED218 = {
+			isa = PBXGroup;
+			children = (
+				C15C9DE68D271BB57307A7F8 /* NotchBar */,
+				A8AAD2F63D4C7AF7D635BF4F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2C00BDDE71F9046BD6B09394 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				75DBD519135673015ECA7E78 /* QuickSettingsView.swift */,
+				403B9DF446E0624B043841C7 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		3A6005E3BE8E82BE36D172EE /* Weather */ = {
+			isa = PBXGroup;
+			children = (
+				2686DA6F19108FA35168B8A7 /* WeatherManager.swift */,
+				5CB22372C466EF58301ACC8A /* WeatherWidgetView.swift */,
+			);
+			path = Weather;
+			sourceTree = "<group>";
+		};
+		54C63ABBC364E5B636A403BD /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				ACDAD00335C17F037E82CADE /* Calendar */,
+				C36A63F2AF0FEEF714E2A39A /* Media */,
+				2C00BDDE71F9046BD6B09394 /* Settings */,
+				7C66249595DAF5D63664E4BC /* System */,
+				3A6005E3BE8E82BE36D172EE /* Weather */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		73E4848974023E8C96EC2217 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				EC2A6C8AC61D8CDD4E108658 /* AppDelegate.swift */,
+				344B90940CB5CEA49AFC0EC3 /* NotchBarApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		7C66249595DAF5D63664E4BC /* System */ = {
+			isa = PBXGroup;
+			children = (
+				FFA1836F5F12115A2611D137 /* SystemMonitor.swift */,
+				EA306796585D79B1D9B948F2 /* SystemWidgetView.swift */,
+			);
+			path = System;
+			sourceTree = "<group>";
+		};
+		95F19F31F588687C0FE56AB0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				02CC9AA4BF786B5B31016F2C /* NotchPopupView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A8AAD2F63D4C7AF7D635BF4F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				947F854AC161967710352113 /* NotchBar.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ACDAD00335C17F037E82CADE /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				93F99BFA36981D60AB17168B /* CalendarManager.swift */,
+				BA3509FBB43B727E91280D60 /* CalendarWidgetView.swift */,
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		C15C9DE68D271BB57307A7F8 /* NotchBar */ = {
+			isa = PBXGroup;
+			children = (
+				DC3E4260B4FB0B289B99F1FD /* Assets.xcassets */,
+				D7A06F228E5C2EA7615DE1D3 /* Info.plist */,
+				6D3408BE3A7B4E066029DB03 /* NotchBar.entitlements */,
+				73E4848974023E8C96EC2217 /* App */,
+				02E1848A0005BED04E0C4422 /* Core */,
+				54C63ABBC364E5B636A403BD /* Features */,
+				95F19F31F588687C0FE56AB0 /* Views */,
+			);
+			path = NotchBar;
+			sourceTree = "<group>";
+		};
+		C36A63F2AF0FEEF714E2A39A /* Media */ = {
+			isa = PBXGroup;
+			children = (
+				C207FDE0049A28D09F53C23A /* MediaManager.swift */,
+				22C1EAF4A19FBCA156DC931F /* MediaWidgetView.swift */,
+			);
+			path = Media;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6E086716A09C1EA4925AA05D /* NotchBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC562F466D7FFB0C33135CDD /* Build configuration list for PBXNativeTarget "NotchBar" */;
+			buildPhases = (
+				72C8F33E3D5B20BBD2686315 /* Sources */,
+				F3588E94245440CDC6534260 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NotchBar;
+			packageProductDependencies = (
+			);
+			productName = NotchBar;
+			productReference = 947F854AC161967710352113 /* NotchBar.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		774095FE2D04249AAD252C6F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					6E086716A09C1EA4925AA05D = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2FE0AEC2A8B19A934D13A33A /* Build configuration list for PBXProject "NotchBar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 14DE8C8E9F9DB7858AAED218;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A8AAD2F63D4C7AF7D635BF4F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6E086716A09C1EA4925AA05D /* NotchBar */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F3588E94245440CDC6534260 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD245084726E9F4A2D1C3057 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		72C8F33E3D5B20BBD2686315 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B842A65E60AAD66B88FB6A9D /* AppDelegate.swift in Sources */,
+				284A656482BF9ACC0CDEB8A9 /* CalendarManager.swift in Sources */,
+				F5BC897BDD90BD6C839FAEC0 /* CalendarWidgetView.swift in Sources */,
+				FC137068E7709928D9FCC80F /* DesignSystem.swift in Sources */,
+				F47DB67383E8D279D1AB0808 /* HoverManager.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* NotchConnectedShape.swift in Sources */,
+				1A2B3C4D5E6F0718293A4B5E /* AppleScriptRunner.swift in Sources */,
+				B1C2D3E4F5061728394A5B6C /* BrightnessHelper.swift in Sources */,
+				3800022451C1A0F1E97FD5C8 /* MediaManager.swift in Sources */,
+				35FF63BBBB906F07309413A8 /* MediaWidgetView.swift in Sources */,
+				439A1EC04A534F5D3E71F314 /* NotchBarApp.swift in Sources */,
+				82C2B42F73C492254262B4EC /* NotchDetector.swift in Sources */,
+				E5D1F494A5DFFA40B3DBE620 /* NotchPopupView.swift in Sources */,
+				7023EA767DD4D41BB5284D6C /* NotchWindow.swift in Sources */,
+				1DFFB3150F1650D8D2341F2C /* QuickSettingsView.swift in Sources */,
+				6B0430CB0B7B5240ADC8FCCC /* SettingsView.swift in Sources */,
+				11C5C7481CA2DE4F1274A775 /* SystemMonitor.swift in Sources */,
+				29AEE85B9A571FFF8B37D770 /* SystemWidgetView.swift in Sources */,
+				42DFA5018D14347527552C47 /* WeatherManager.swift in Sources */,
+				6ECE60103F801B64644713F0 /* WeatherWidgetView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		25F8DA17CF32342F4359CCBC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9886D970864B3ECAEF864C2E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = NotchBar/NotchBar.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = NotchBar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hbin77.NotchBar;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		BC59B44AF4F56342884365BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = NotchBar/NotchBar.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = NotchBar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hbin77.NotchBar;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		FD4B33BD1D4F0AC3EE71D55A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2FE0AEC2A8B19A934D13A33A /* Build configuration list for PBXProject "NotchBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FD4B33BD1D4F0AC3EE71D55A /* Debug */,
+				25F8DA17CF32342F4359CCBC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CC562F466D7FFB0C33135CDD /* Build configuration list for PBXNativeTarget "NotchBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC59B44AF4F56342884365BA /* Debug */,
+				9886D970864B3ECAEF864C2E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 774095FE2D04249AAD252C6F /* Project object */;
+}

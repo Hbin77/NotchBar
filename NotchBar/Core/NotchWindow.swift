@@ -2,121 +2,115 @@
 //  NotchWindow.swift
 //  NotchBar
 //
-//  노치 팝업 윈도우 관리
+//  노치 팝업 윈도우
 //
 
 import SwiftUI
 import AppKit
 
-class NotchWindow: NSWindow {
-    
-    // MARK: - Properties
-    
-    private(set) var isExpanded = false
-    private let notchFrame: NSRect
+class NotchViewModel: ObservableObject {
+    @Published var isExpanded = false
+    @Published var notchWidth: CGFloat
+    @Published var stemHeight: CGFloat
+
+    init(notchWidth: CGFloat = 200, stemHeight: CGFloat = 20) {
+        self.notchWidth = notchWidth
+        self.stemHeight = stemHeight
+    }
+}
+
+class NotchWindow: NSPanel {
+
+    var isExpanded: Bool { viewModel.isExpanded }
+    private(set) var notchFrame: NSRect
     private var hostingView: NSHostingView<NotchPopupView>?
-    
-    // MARK: - Initialization
-    
+    let viewModel: NotchViewModel
+    private var collapseWorkItem: DispatchWorkItem?
+
     init(notchFrame: NSRect) {
         self.notchFrame = notchFrame
-        
+        self.viewModel = NotchViewModel(
+            notchWidth: NotchDetector.hasNotch() ? NotchDetector.getNotchWidth() + 10 : 200,
+            stemHeight: NotchDetector.stemHeight
+        )
         super.init(
             contentRect: notchFrame,
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-        
         setupWindow()
         setupContent()
     }
-    
-    // MARK: - Setup
-    
+
     private func setupWindow() {
-        // 윈도우 속성 설정
-        self.level = .statusBar + 1  // 메뉴바 위에 표시
+        self.level = .popUpMenu
         self.backgroundColor = .clear
         self.isOpaque = false
-        self.hasShadow = true
+        self.hasShadow = false
         self.ignoresMouseEvents = false
         self.acceptsMouseMovedEvents = true
         self.isMovableByWindowBackground = false
-        
-        // 모든 Space에서 표시
         self.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
+        self.isFloatingPanel = true
+        self.becomesKeyOnlyIfNeeded = true
     }
-    
+
     private func setupContent() {
-        let contentView = NotchPopupView()
+        let contentView = NotchPopupView(viewModel: viewModel)
         hostingView = NSHostingView(rootView: contentView)
-        hostingView?.frame = self.frame
+        hostingView?.autoresizingMask = [.width, .height]
+        hostingView?.wantsLayer = true
+        hostingView?.layer?.masksToBounds = false
+        hostingView?.frame = NSRect(origin: .zero, size: self.frame.size)
         self.contentView = hostingView
     }
-    
-    // MARK: - Public Methods
-    
+
     func show() {
+        self.alphaValue = 0
         self.orderFrontRegardless()
     }
-    
-    func hide() {
-        self.orderOut(nil)
-    }
-    
+
+    func hide() { self.orderOut(nil) }
+
     func toggle() {
-        if isExpanded {
-            collapse()
-        } else {
-            expand()
-        }
+        if isExpanded { collapse() } else { expand() }
     }
-    
+
     func expand() {
         guard !isExpanded else { return }
-        isExpanded = true
-        
+        collapseWorkItem?.cancel()
+        collapseWorkItem = nil
+
         let expandedFrame = NotchDetector.getExpandedFrame()
-        
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.25
-            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            
-            self.animator().setFrame(expandedFrame, display: true)
-            self.animator().alphaValue = 1.0
-        }
-        
-        // 뷰 업데이트
-        updateContent(expanded: true)
-        
-        print("📱 노치 팝업 확장")
+        self.setFrame(expandedFrame, display: true)
+        self.alphaValue = 1.0
+        self.ignoresMouseEvents = false
+        self.orderFrontRegardless()
+        viewModel.isExpanded = true
     }
-    
+
     func collapse() {
         guard isExpanded else { return }
-        isExpanded = false
-        
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
-            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            
-            self.animator().setFrame(notchFrame, display: true)
+        viewModel.isExpanded = false
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self, !self.isExpanded else { return }
+            self.setFrame(self.notchFrame, display: true)
+            self.alphaValue = 0
+            self.ignoresMouseEvents = true
         }
-        
-        // 뷰 업데이트
-        updateContent(expanded: false)
-        
-        print("📱 노치 팝업 축소")
+        collapseWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: workItem)
     }
-    
-    private func updateContent(expanded: Bool) {
-        let contentView = NotchPopupView(isExpanded: expanded)
-        hostingView?.rootView = contentView
+
+    func updateNotchFrame(_ frame: NSRect) {
+        self.notchFrame = frame
+        viewModel.notchWidth = NotchDetector.hasNotch() ? NotchDetector.getNotchWidth() + 10 : 200
+        viewModel.stemHeight = NotchDetector.stemHeight
+        if !isExpanded { self.setFrame(frame, display: true) }
     }
-    
-    // MARK: - Mouse Events
-    
+
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
 }

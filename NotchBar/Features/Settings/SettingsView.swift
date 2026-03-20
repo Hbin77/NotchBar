@@ -7,13 +7,17 @@
 
 import SwiftUI
 import ServiceManagement
+import os.log
 
 struct SettingsView: View {
-    
+
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "NotchBar", category: "Settings")
+
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @AppStorage("showMediaWidget") private var showMediaWidget = true
     @AppStorage("showWeatherWidget") private var showWeatherWidget = true
     @AppStorage("showSystemWidget") private var showSystemWidget = true
+    @AppStorage("showCalendarWidget") private var showCalendarWidget = true
     @AppStorage("showQuickSettings") private var showQuickSettings = true
     @AppStorage("hoverDelay") private var hoverDelay = 0.3
     @AppStorage("unhoverDelay") private var unhoverDelay = 0.5
@@ -81,6 +85,7 @@ struct SettingsView: View {
             Section("표시할 위젯") {
                 Toggle("미디어 플레이어", isOn: $showMediaWidget)
                 Toggle("날씨", isOn: $showWeatherWidget)
+                Toggle("캘린더", isOn: $showCalendarWidget)
                 Toggle("시스템 모니터", isOn: $showSystemWidget)
                 Toggle("빠른 설정", isOn: $showQuickSettings)
             }
@@ -130,7 +135,7 @@ struct SettingsView: View {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                print("로그인 시작 설정 오류: \(error)")
+                Self.logger.error("로그인 시작 설정 오류: \(error.localizedDescription)")
             }
         }
     }

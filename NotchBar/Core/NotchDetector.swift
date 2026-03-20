@@ -8,97 +8,75 @@
 import AppKit
 
 struct NotchDetector {
-    
-    // MARK: - Constants
-    
-    /// 노치 너비 (픽셀, 대략적인 값)
-    static let notchWidth: CGFloat = 180
-    
-    /// 노치 높이 (메뉴바 높이와 동일)
+
     static let notchHeight: CGFloat = 38
-    
-    /// 확장된 팝업 높이
-    static let expandedHeight: CGFloat = 200
-    
-    /// 확장된 팝업 너비
-    static let expandedWidth: CGFloat = 400
-    
-    // MARK: - Detection
-    
-    /// 노치가 있는 맥북인지 확인
+    static let stemHeight: CGFloat = 16
+    static let expandedPanelHeight: CGFloat = 360
+    static let expandedWidth: CGFloat = 660
+
+    // MARK: - Screen Detection
+
+    static func notchScreen() -> NSScreen? {
+        if #available(macOS 12.0, *) {
+            for screen in NSScreen.screens {
+                if screen.safeAreaInsets.top > 0 { return screen }
+                if screen.auxiliaryTopLeftArea != nil { return screen }
+            }
+        }
+        return nil
+    }
+
+    static func targetScreen() -> NSScreen? {
+        return notchScreen() ?? NSScreen.main
+    }
+
     static func hasNotch() -> Bool {
-        guard let screen = NSScreen.main else { return false }
-        
-        // macOS 12+ 에서 safeAreaInsets 확인
-        if #available(macOS 12.0, *) {
-            let safeArea = screen.safeAreaInsets
-            // 상단 safe area가 있으면 노치 존재
-            return safeArea.top > 0
-        }
-        
-        // 대체 방법: auxiliaryTopLeftArea/auxiliaryTopRightArea 확인
-        if #available(macOS 12.0, *) {
-            let hasAuxArea = screen.auxiliaryTopLeftArea != nil || screen.auxiliaryTopRightArea != nil
-            return hasAuxArea
-        }
-        
-        return false
+        return notchScreen() != nil
     }
-    
-    /// 노치 영역의 프레임 반환
+
+    static func getNotchWidth() -> CGFloat {
+        guard let screen = notchScreen() else { return 180 }
+        if #available(macOS 12.0, *) {
+            if let left = screen.auxiliaryTopLeftArea, let right = screen.auxiliaryTopRightArea {
+                let w = screen.frame.width - left.width - right.width
+                if w > 0 { return w }
+            }
+        }
+        return 180
+    }
+
+    // MARK: - Collapsed Frame
+
     static func getNotchFrame() -> NSRect {
-        guard let screen = NSScreen.main else {
-            return .zero
-        }
-        
-        let screenFrame = screen.frame
-        let visibleFrame = screen.visibleFrame
-        
-        // 메뉴바 높이 계산
-        let menuBarHeight = screenFrame.height - visibleFrame.height - visibleFrame.origin.y
-        
-        // 노치 중앙 위치
-        let notchX = (screenFrame.width - notchWidth) / 2
-        let notchY = screenFrame.height - menuBarHeight
-        
-        return NSRect(
-            x: notchX,
-            y: notchY,
-            width: notchWidth,
-            height: menuBarHeight
-        )
+        guard let screen = targetScreen() else { return .zero }
+        let sf = screen.frame
+        let vf = screen.visibleFrame
+        let menuBarH = sf.maxY - vf.maxY
+        let width: CGFloat = hasNotch() ? getNotchWidth() + 40 : 260
+        let x = sf.origin.x + (sf.width - width) / 2
+        let y = vf.maxY
+        return NSRect(x: x, y: y, width: width, height: menuBarH)
     }
-    
-    /// 확장된 팝업 프레임 반환
+
+    // MARK: - Expanded Frame
+
     static func getExpandedFrame() -> NSRect {
-        guard let screen = NSScreen.main else {
-            return .zero
-        }
-        
-        let screenFrame = screen.frame
-        
-        // 화면 중앙, 메뉴바 아래에 위치
-        let popupX = (screenFrame.width - expandedWidth) / 2
-        let popupY = screenFrame.height - notchHeight - expandedHeight
-        
-        return NSRect(
-            x: popupX,
-            y: popupY,
-            width: expandedWidth,
-            height: expandedHeight
-        )
+        guard let screen = targetScreen() else { return .zero }
+        let sf = screen.frame
+        let vf = screen.visibleFrame
+        let x = sf.origin.x + (sf.width - expandedWidth) / 2
+        let y = vf.maxY - expandedPanelHeight
+        return NSRect(x: x, y: y, width: expandedWidth, height: expandedPanelHeight)
     }
-    
-    /// 노치 영역 포함한 확장 감지 영역 (호버 감지용)
+
+    // MARK: - Hover Detection
+
     static func getHoverDetectionFrame() -> NSRect {
-        let notchFrame = getNotchFrame()
-        
-        // 노치 영역보다 약간 넓게 (좌우 20px, 아래 10px 확장)
-        return NSRect(
-            x: notchFrame.origin.x - 20,
-            y: notchFrame.origin.y - 10,
-            width: notchFrame.width + 40,
-            height: notchFrame.height + 10
-        )
+        guard let screen = targetScreen() else { return .zero }
+        let sf = screen.frame
+        let width: CGFloat = 300
+        let x = sf.origin.x + (sf.width - width) / 2
+        let y = sf.maxY - notchHeight - 5
+        return NSRect(x: x, y: y, width: width, height: notchHeight + 10)
     }
 }

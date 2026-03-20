@@ -2,21 +2,41 @@
 //  CalendarWidgetView.swift
 //  NotchBar
 //
-//  캘린더 위젯 뷰
+//  캘린더 위젯 — 프리미엄 디자인
 //
 
 import SwiftUI
 
 struct CalendarWidgetView: View {
-    
+
     @StateObject private var manager = CalendarManager.shared
-    @State private var isHovering = false
-    
+
+    private static let todayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "M/d (E)"
+        f.locale = Locale(identifier: "ko_KR")
+        return f
+    }()
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // 헤더
-            headerView
-            
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 12))
+                    .foregroundColor(.accentColor)
+
+                Text("오늘 일정")
+                    .font(NotchDesign.Font.caption)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Text(Self.todayFormatter.string(from: Date()))
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(.tertiary)
+            }
+
             // 콘텐츠
             if manager.authorizationStatus != .authorized {
                 authorizationView
@@ -28,55 +48,23 @@ struct CalendarWidgetView: View {
                 eventsListView
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(isHovering ? 0.15 : 0.1))
-        )
-        .scaleEffect(isHovering ? 1.02 : 1.0)
-        .animation(.easeInOut(duration: 0.2), value: isHovering)
-        .onHover { hovering in
-            isHovering = hovering
-        }
+        .widgetCard()
     }
-    
-    // MARK: - Header
-    
-    private var headerView: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "calendar")
-                .font(.system(size: 11))
-                .foregroundColor(.accentColor)
-            
-            Text("오늘 일정")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            Text(todayDateString)
-                .font(.system(size: 10))
-                .foregroundColor(.secondary)
-        }
-    }
-    
+
     // MARK: - Authorization
-    
+
     private var authorizationView: some View {
         VStack(spacing: 8) {
             Image(systemName: "calendar.badge.exclamationmark")
                 .font(.system(size: 20))
                 .foregroundColor(.secondary)
-            
+
             Text("캘린더 접근 필요")
-                .font(.system(size: 11))
+                .font(NotchDesign.Font.caption)
                 .foregroundColor(.secondary)
-            
+
             Button("권한 허용") {
-                Task {
-                    await manager.requestAccess()
-                }
+                Task { await manager.requestAccess() }
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
@@ -84,60 +72,51 @@ struct CalendarWidgetView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
     }
-    
+
     // MARK: - Loading
-    
+
     private var loadingView: some View {
         HStack {
             ProgressView()
                 .scaleEffect(0.7)
             Text("로딩 중...")
-                .font(.system(size: 11))
+                .font(NotchDesign.Font.caption)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
     }
-    
+
     // MARK: - Empty
-    
+
     private var emptyView: some View {
         HStack(spacing: 6) {
-            Image(systemName: "checkmark.circle")
+            Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 14))
                 .foregroundColor(.green)
-            
+
             Text("오늘 일정 없음")
-                .font(.system(size: 12))
+                .font(NotchDesign.Font.body)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
     }
-    
+
     // MARK: - Events List
-    
+
     private var eventsListView: some View {
         VStack(alignment: .leading, spacing: 6) {
-            ForEach(manager.todayEvents.prefix(3)) { event in
+            ForEach(Array(manager.todayEvents.prefix(3))) { event in
                 EventRowView(event: event)
             }
-            
+
             if manager.todayEvents.count > 3 {
                 Text("+\(manager.todayEvents.count - 3)개 더")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .font(NotchDesign.Font.captionSecondary)
+                    .foregroundStyle(.tertiary)
             }
         }
-    }
-    
-    // MARK: - Helpers
-    
-    private var todayDateString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M/d (E)"
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.string(from: Date())
     }
 }
 
@@ -145,57 +124,49 @@ struct CalendarWidgetView: View {
 
 struct EventRowView: View {
     let event: CalendarEvent
-    @State private var isHovering = false
-    
+
     var body: some View {
         HStack(spacing: 8) {
-            // 시간
             Text(event.timeString)
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                 .foregroundColor(event.isOngoing ? .accentColor : .primary)
-            
-            // 캘린더 컬러 인디케이터
+
             Circle()
                 .fill(calendarColor)
                 .frame(width: 6, height: 6)
-            
-            // 제목
+
             Text(event.title)
-                .font(.system(size: 11))
+                .font(NotchDesign.Font.caption)
                 .lineLimit(1)
                 .foregroundColor(event.isOngoing ? .primary : .secondary)
-            
+
             Spacer()
-            
-            // 진행 중 뱃지
+
             if event.isOngoing {
                 Text("진행 중")
-                    .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(.white)
+                    .font(NotchDesign.Font.tiny)
+                    .foregroundColor(.accentColor)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.accentColor))
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .overlay(Capsule().fill(Color.accentColor.opacity(0.15)))
+                    )
             } else if event.isUpcoming && event.minutesUntilStart <= 30 {
                 Text("\(event.minutesUntilStart)분 후")
-                    .font(.system(size: 9))
+                    .font(NotchDesign.Font.tiny)
                     .foregroundColor(.orange)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 5)
         .padding(.horizontal, 6)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(event.isOngoing ? Color.accentColor.opacity(0.1) : Color.clear)
+                .fill(event.isOngoing ? Color.accentColor.opacity(0.08) : Color.clear)
         )
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isHovering ? Color.white.opacity(0.05) : Color.clear)
-        )
-        .onHover { hovering in
-            isHovering = hovering
-        }
     }
-    
+
     private var calendarColor: Color {
         if let cgColor = event.calendarColor {
             return Color(cgColor: cgColor)
@@ -204,13 +175,9 @@ struct EventRowView: View {
     }
 }
 
-// MARK: - Preview
-
 #Preview {
-    VStack(spacing: 20) {
-        CalendarWidgetView()
-            .frame(width: 200)
-    }
-    .padding()
-    .background(Color.black)
+    CalendarWidgetView()
+        .frame(width: 200)
+        .padding()
+        .background(Color.black.opacity(0.8))
 }

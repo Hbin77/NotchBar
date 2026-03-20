@@ -9,6 +9,7 @@ import Foundation
 import CoreLocation
 import Combine
 
+@MainActor
 class WeatherManager: NSObject, ObservableObject {
     
     // MARK: - Singleton
@@ -41,7 +42,11 @@ class WeatherManager: NSObject, ObservableObject {
     
     // MARK: - Public Methods
     
+    private var isMonitoring = false
+
     func startMonitoring() {
+        guard !isMonitoring else { return }
+        isMonitoring = true
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
     }
@@ -58,9 +63,9 @@ class WeatherManager: NSObject, ObservableObject {
     
     private func fetchWeather(for location: CLLocation) {
         // Open-Meteo API 사용 (무료, API 키 불필요)
-        let lat = location.coordinate.latitude
-        let lon = location.coordinate.longitude
-        
+        let lat = String(format: "%.2f", location.coordinate.latitude)
+        let lon = String(format: "%.2f", location.coordinate.longitude)
+
         let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(lat)&longitude=\(lon)&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto"
         
         guard let url = URL(string: urlString) else { return }
@@ -68,20 +73,17 @@ class WeatherManager: NSObject, ObservableObject {
         isLoading = true
         
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            defer {
-                DispatchQueue.main.async {
-                    self?.isLoading = false
-                }
-            }
-            
-            guard let data = data,
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode),
+                  let data = data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let current = json["current"] as? [String: Any]
             else {
+                Task { @MainActor in self?.isLoading = false }
                 return
             }
-            
-            DispatchQueue.main.async {
+
+            Task { @MainActor in
                 if let temp = current["temperature_2m"] as? Double {
                     self?.temperature = temp
                 }
@@ -93,6 +95,7 @@ class WeatherManager: NSObject, ObservableObject {
                     self?.conditionDescription = self?.condition.description ?? ""
                 }
                 self?.lastUpdate = Date()
+                self?.isLoading = false
             }
         }.resume()
         
@@ -104,8 +107,8 @@ class WeatherManager: NSObject, ObservableObject {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
             guard let placemark = placemarks?.first else { return }
-            
-            DispatchQueue.main.async {
+
+            Task { @MainActor in
                 if let locality = placemark.locality {
                     self?.locationName = locality
                 } else if let area = placemark.administrativeArea {
@@ -135,22 +138,17 @@ extension WeatherManager: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("⚠️ 위치 오류: \(error.localizedDescription)")
-        DispatchQueue.main.async { [weak self] in
-            self?.locationName = "위치 확인 실패"
-            self?.isLoading = false
-        }
+        locationName = "위치 확인 실패"
+        isLoading = false
     }
-    
+
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             manager.startUpdatingLocation()
         case .denied, .restricted:
-            DispatchQueue.main.async { [weak self] in
-                self?.locationName = "위치 권한 필요"
-                self?.isLoading = false
-            }
+            locationName = "위치 권한 필요"
+            isLoading = false
         default:
             break
         }
